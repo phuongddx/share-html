@@ -1,0 +1,133 @@
+"use client";
+
+/**
+ * ShareLink — displays the shareable URL after a successful upload.
+ * Provides copy-to-clipboard for the share link and shows the delete link once.
+ */
+
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Check, Copy, ExternalLink, Trash2, AlertTriangle } from "lucide-react";
+import type { UploadResult } from "@/components/upload-dropzone";
+
+interface ShareLinkProps {
+  result: UploadResult;
+}
+
+export function ShareLink({ result }: ShareLinkProps) {
+  const [copied, setCopied] = useState(false);
+  const [deleteShown, setDeleteShown] = useState(true);
+
+  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/s/${result.slug}` : `/s/${result.slug}`;
+  const deleteUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/api/shares/${result.slug}`
+      : `/api/shares/${result.slug}`;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback: select text in the input for manual copy
+      const input = document.getElementById("share-url-input") as HTMLInputElement;
+      input?.select();
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Check className="size-4 text-green-600" />
+          File shared successfully
+        </CardTitle>
+        <CardDescription>
+          {result.filename}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        {/* Shareable URL */}
+        <div className="flex items-center gap-2">
+          <Input
+            id="share-url-input"
+            value={shareUrl}
+            readOnly
+            className="font-mono text-sm"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={handleCopy}
+            aria-label="Copy share link"
+          >
+            {copied ? (
+              <Check className="size-4 text-green-600" />
+            ) : (
+              <Copy className="size-4" />
+            )}
+          </Button>
+          <a
+            href={shareUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open share link"
+          >
+            <Button type="button" variant="outline" size="icon">
+              <ExternalLink className="size-4" />
+            </Button>
+          </a>
+        </div>
+
+        {/* Delete link — shown once */}
+        {deleteShown && (
+          <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 dark:border-amber-700 dark:bg-amber-950/30">
+            <div className="mb-2 flex items-center gap-2 text-sm font-medium text-amber-800 dark:text-amber-300">
+              <AlertTriangle className="size-4 shrink-0" />
+              Save this delete link — it will not be shown again
+            </div>
+            <div className="flex items-center gap-2">
+              <Input
+                value={`${deleteUrl}`}
+                readOnly
+                className="font-mono text-xs"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(deleteUrl);
+                  } catch {
+                    const input = document.getElementById(
+                      "delete-url-input",
+                    ) as HTMLInputElement;
+                    input?.select();
+                  }
+                }}
+                aria-label="Copy delete link"
+              >
+                <Copy className="size-4" />
+              </Button>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              className="mt-2 text-amber-700 dark:text-amber-400"
+              onClick={() => setDeleteShown(false)}
+            >
+              <Trash2 className="size-3" />
+              Dismiss
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
