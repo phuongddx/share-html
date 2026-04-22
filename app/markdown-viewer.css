@@ -102,7 +102,7 @@
   font-weight: 600;
   background: var(--muted);
 }
-.markdown-body tr:nth-child(even) { background: var(--muted)/30; }
+.markdown-body tr:nth-child(even) { background: color-mix(in srgb, var(--muted) 10%, transparent); }
 
 .markdown-body img {
   max-width: 100%;

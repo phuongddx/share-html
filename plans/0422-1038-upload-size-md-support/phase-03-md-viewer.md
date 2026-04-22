@@ -9,7 +9,7 @@
 ## Overview
 
 - Priority: High
-- Status: Pending (blocked by Phase 2)
+- Status: Completed
 - Build the MarkdownViewer component with preview/raw toggle, syntax highlighting, and GitHub-like prose styling.
 
 ## Key Insights

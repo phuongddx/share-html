@@ -50,7 +50,8 @@ RootLayout (app/layout.tsx)
     │   ├── UploadDropzone
     │   └── ShareLink
     ├── /s/[slug] (SharePage)
-    │   └── HtmlViewer (sandboxed iframe)
+    │   ├── HtmlViewer (sandboxed iframe, for .html files)
+    │   └── MarkdownViewerWrapper (lazy loaded, for .md files)
     ├── /search (SearchPage)
     │   ├── SearchBar
     │   └── SearchResults
@@ -64,13 +65,13 @@ RootLayout (app/layout.tsx)
 
 ### Upload Flow
 ```
-User drops file → UploadDropzone (client validation: .html, ≤10MB)
+User drops file → UploadDropzone (client validation: .html/.htm/.md, ≤50MB)
   → POST /api/upload ( FormData )
     → Rate limit check (Upstash Redis)
     → File validation (extension, MIME, size)
     → Upload to Supabase Storage (admin client)
-    → Extract text from HTML (lib/extract-text.ts)
-    → Insert DB record with slug, content_text (admin client)
+    → Extract text from HTML or Markdown (lib/extract-text.ts)
+    → Insert DB record with slug, content_text, mime_type (admin client)
     → On failure: compensating delete from storage
   → Return { slug, filename, deleteUrl, shareUrl }
   → ShareLink component displays results
@@ -81,9 +82,11 @@ User drops file → UploadDropzone (client validation: .html, ≤10MB)
 GET /s/[slug]
   → Server component: fetch share from DB (anon client)
   → Check expiration → 404 if expired
-  → Download HTML from Storage (admin client)
+  → Download content from Storage (admin client)
   → RPC: increment_view_count(slug)
-  → HtmlViewer: sandboxed iframe + CSP meta tag injection
+  → Branch by mime_type:
+    → text/markdown → MarkdownViewer (lazy loaded, client-side react-markdown + shiki)
+    → text/html → HtmlViewer: sandboxed iframe + CSP meta tag injection
 ```
 
 ### Search Flow
@@ -141,15 +144,15 @@ DELETE /api/shares/[slug] + delete_token
 
 ## Storage
 
-- **Bucket**: `html-files` (public, 10MB max)
-- **Path format**: `{uuid-v4}.html`
+- **Bucket**: `html-files` (public, 50MB max)
+- **Path format**: `{uuid-v4}.html` or `{uuid-v4}.md`
 - **Access**: Public read via Supabase CDN, admin-only write
 
 ## Security Layers
 
 | Layer | Implementation |
 |-------|---------------|
-| File validation | Extension (.html/.htm), MIME type, size ≤10MB |
+| File validation | Extension (.html/.htm/.md), MIME type, size ≤50MB |
 | Rate limiting | Upstash sliding window, 10 req/min per IP |
 | HtmlViewer sandbox | `sandbox="allow-scripts"` + CSP meta tag |
 | Delete protection | Random 32-char token required |

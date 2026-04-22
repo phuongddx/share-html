@@ -38,7 +38,7 @@ Share HTML is a modern web platform that enables users to quickly upload HTML fi
 ## Technical Requirements
 
 ### Functional Requirements
-1. **File Upload**: Accept .html files up to 10MB
+1. **File Upload**: Accept .html and .md files up to 50MB
 2. **Link Generation**: Create unique, readable slugs using nanoid
 3. **HTML Rendering**: Display content in secure iframe with CSP
 4. **Search**: Full-text search with pagination (10 results per page)
@@ -57,8 +57,8 @@ Share HTML is a modern web platform that enables users to quickly upload HTML fi
 
 ### Upload Functionality
 - [ ] Users can drag and drop HTML files onto the upload area
-- [ ] File size validation (max 10MB)
-- [ ] File type validation (.html only)
+- [ ] File size validation (max 50MB)
+- [ ] File type validation (.html and .md)
 - [ ] Progress feedback during upload
 - [ ] Success notification with generated share link
 - [ ] Error messages for invalid files or size limits

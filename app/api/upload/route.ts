@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { createAdminClient } from "@/utils/supabase/server";
 import { generateSlug, generateDeleteToken } from "@/lib/nanoid";
-import { extractTextFromHtml } from "@/lib/extract-text";
+import { extractTextFromHtml, extractTextFromMarkdown } from "@/lib/extract-text";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 export const maxDuration = 60;
@@ -99,7 +99,9 @@ export async function POST(request: NextRequest) {
     const fileContent = new TextDecoder("utf-8", { fatal: true }).decode(arrayBuffer);
 
     // Extract plain text for search indexing
-    const contentText = extractTextFromHtml(fileContent);
+    const contentText = isMarkdown
+      ? extractTextFromMarkdown(fileContent)
+      : extractTextFromHtml(fileContent);
 
     // Generate identifiers
     const slug = generateSlug();

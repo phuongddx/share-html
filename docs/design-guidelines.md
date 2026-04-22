@@ -50,6 +50,8 @@ Built with shadcn/ui + Base UI React primitives:
 - **SearchBar**: Debounced search input (300ms) with router navigation
 - **SearchResults**: Results cards with relative time, skeleton loading, empty state
 - **HtmlViewer**: Sandboxed iframe with CSP injection for secure HTML rendering
+- **MarkdownViewer**: react-markdown + remark-gfm + shiki syntax highlighting with preview/raw toggle (lazy loaded)
+- **MarkdownViewerWrapper**: Dynamic import wrapper for client-side markdown rendering
 - **ThemeProvider**: next-themes wrapper for class-based dark/light toggle
 
 ## Spacing
@@ -76,5 +78,5 @@ Tailwind breakpoints:
 ## Security in UI
 
 - **HtmlViewer**: Sandboxed iframe (`sandbox="allow-scripts"`) + CSP meta tag injection
-- **File validation**: Extension (.html/.htm), MIME type, size (10MB) checks
+- **File validation**: Extension (.html/.htm/.md), MIME type, size (50MB) checks
 - **Rate limiting**: 10 requests/minute per IP on upload endpoint

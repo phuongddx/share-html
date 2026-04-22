@@ -11,7 +11,7 @@
 ## Overview
 
 - Priority: High
-- Status: Pending (blocked by Phase 1 for size constants)
+- Status: Completed
 - Extend upload pipeline to accept `.md` files alongside `.html/.htm`.
 
 ## Key Insights

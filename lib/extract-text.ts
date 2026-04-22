@@ -7,7 +7,7 @@
 
 const MAX_TEXT_LENGTH = 100_000;
 
-function extractTextFromMarkdown(md: string): string {
+export function extractTextFromMarkdown(md: string): string {
   let text = md;
   // Remove fenced code blocks
   text = text.replace(/```[\s\S]*?```/g, "");
@@ -31,11 +31,6 @@ function extractTextFromMarkdown(md: string): string {
 }
 
 export function extractTextFromHtml(content: string): string {
-  // If no HTML tags found, treat as plain text / markdown
-  if (!content.includes("<")) {
-    return extractTextFromMarkdown(content);
-  }
-
   const html = content;
   // Remove script and style tags including their content
   let text = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "");

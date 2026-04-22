@@ -51,6 +51,25 @@ The Share HTML platform is currently in a functional state with core features im
 - ✅ Next-themes integration for theming
 - ✅ Comprehensive validation and security checks
 
+### Phase 2.5: Upload & Format Enhancements ✅ COMPLETED
+**Duration**: April 2026  
+**Status**: Fully implemented and tested
+
+#### Completed Features
+- ✅ Upload size limit increased from 10MB to 50MB
+- ✅ Markdown (.md) file upload support
+- ✅ Client-side markdown viewer with react-markdown + remark-gfm
+- ✅ Shiki syntax highlighting (10 curated languages)
+- ✅ Preview/raw toggle for markdown files
+- ✅ GitHub-like prose styling for rendered markdown
+- ✅ Lazy-loaded markdown viewer (next/dynamic)
+
+#### Technical Achievements
+- ✅ Supabase storage bucket reconfigured for 50MB
+- ✅ Upload API extended for multi-format support (HTML + MD)
+- ✅ Text extraction for markdown search indexing
+- ✅ Viewer routing by mime_type in share page
+
 ### Phase 3: Production Readiness 🔄 IN PROGRESS
 **Duration**: March 2025 - June 2025  
 **Status**: 75% Complete
