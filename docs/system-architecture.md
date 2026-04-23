@@ -2,7 +2,7 @@
 
 ## Overview
 
-Share HTML is a Next.js 16 application deployed on Vercel with Supabase (PostgreSQL + Storage) and Upstash Redis (rate limiting). Single-page architecture with App Router.
+Share HTML is a Next.js 16 application deployed on Vercel with Supabase (PostgreSQL + Storage) and Upstash Redis (rate limiting). Single-page architecture with App Router. Includes optional authentication via Google and GitHub OAuth for user accounts and dashboard features.
 
 ## Architecture Diagram
 
@@ -51,15 +51,53 @@ RootLayout (app/layout.tsx)
     │   └── ShareLink
     ├── /s/[slug] (SharePage)
     │   ├── HtmlViewer (sandboxed iframe, for .html files)
-    │   └── MarkdownViewerWrapper (lazy loaded, for .md files)
-    ├── /search (SearchPage)
-    │   ├── SearchBar
-    │   └── SearchResults
+    │   ├── MarkdownViewerWrapper (lazy loaded, for .md files)
+    │   └── BookmarkToggle (favorites feature)
+    ├── /auth/login (Authentication)
+    │   ├── Google OAuth button
+    │   └── GitHub OAuth button
+    ├── /dashboard (User Dashboard)
+    │   ├── layout.tsx (sidebar nav)
+    │   ├── page.tsx (share history)
+    │   ├── profile/page.tsx (settings)
+    │   └── favorites/page.tsx (bookmarked shares)
     └── API Routes
-        ├── POST /api/upload
+        ├── POST /api/upload (supports user_id for authenticated users)
         ├── DELETE /api/shares/[slug]
         └── GET /api/search
 ```
+
+## Authentication Architecture
+
+### Authentication Flow
+```
+User clicks OAuth button → /auth/login
+  → supabase.auth.signInWithOAuth({ provider })
+  → Redirect to provider (Google/GitHub)
+  → OAuth callback → /auth/callback
+    → supabase.auth.exchangeCodeForSession()
+    → Redirect to /dashboard
+```
+
+### User Data Model
+- **`auth.users`** (Supabase managed) - Core user data and OAuth identities
+- **`user_profiles`** (application-specific) - Display name, avatar URL
+- **`shares.user_id`** (nullable) - Links shares to users for ownership tracking
+- **`favorites`** - User-specific bookmark relationships
+
+### Authentication Layers
+| Layer | Implementation |
+|-------|---------------|
+| Middleware Protection | Routes `/dashboard/*` redirect unauthenticated users to `/auth/login` |
+| Session Management | Supabase SSR handles cookies with PKCE flow |
+| OAuth Providers | Google and GitHub external auth via Supabase config |
+| RLS Policies | Owner-only access to `user_profiles` and `favorites` tables |
+| Public Share Access | Anonymous users can still view shares without authentication |
+
+### Supabase Client Configuration
+- **Client Component**: `createClient()` for browser-side auth operations
+- **Server Component**: `createClient()` with cookie store for SSR
+- **Admin Client**: `createAdminClient()` for service_role operations (storage/DB writes)
 
 ## Data Flow
 

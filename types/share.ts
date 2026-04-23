@@ -7,6 +7,8 @@ export interface Share {
   file_size: number | null;
   mime_type: string;
   delete_token: string;
+  user_id: string | null;
+  title: string | null;
   created_at: string;
   expires_at: string;
   view_count: number;

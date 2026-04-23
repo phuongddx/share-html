@@ -7,7 +7,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import { createAdminClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
+import { createAdminClient, createClient } from "@/utils/supabase/server";
 import { generateSlug, generateDeleteToken } from "@/lib/nanoid";
 import { extractTextFromHtml, extractTextFromMarkdown } from "@/lib/extract-text";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -103,6 +104,11 @@ export async function POST(request: NextRequest) {
     const storageUuid = randomUUID();
     const storagePath = `${storageUuid}${isMarkdown ? ".md" : ".html"}`;
 
+    // Get authenticated user (if any) — uses anon client for real auth check
+    const cookieStore = await cookies();
+    const authClient = createClient(cookieStore);
+    const { data: { user } } = await authClient.auth.getUser();
+
     // Upload to Supabase Storage (admin client bypasses RLS)
     // Use TextEncoder to produce Uint8Array — Vercel runtime rejects raw strings
     // as fetch body ("Invalid Compact"), while Node.js implicitly wraps them.
@@ -132,6 +138,7 @@ export async function POST(request: NextRequest) {
       file_size: file.size,
       mime_type: mimeType,
       delete_token: deleteToken,
+      user_id: user?.id ?? null,
     });
 
     if (dbError) {
@@ -161,15 +168,15 @@ export async function POST(request: NextRequest) {
     const protocol = request.headers.get("x-forwarded-proto") || "https";
     const shareUrl = `${protocol}://${origin}/s/${slug}`;
 
-    return NextResponse.json(
-      {
-        slug,
-        url: shareUrl,
-        filename,
-        deleteToken,
-      },
-      { status: 201 },
-    );
+    // Auth users delete via dashboard — don't expose delete_token
+    const responsePayload: Record<string, string> = {
+      slug,
+      url: shareUrl,
+      filename,
+      deleteToken: user ? "" : deleteToken,
+    };
+
+    return NextResponse.json(responsePayload, { status: 201 });
   } catch (err) {
     console.error("Upload error:", err);
     return NextResponse.json(

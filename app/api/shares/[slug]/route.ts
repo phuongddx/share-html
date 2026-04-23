@@ -1,12 +1,14 @@
 /**
- * DELETE /api/shares/[slug] — Delete a share by slug with valid delete token.
+ * DELETE /api/shares/[slug] — Delete a share.
  *
- * Flow: parse body → lookup share → verify token → delete storage → delete DB row
+ * Two auth paths:
+ * 1. Anonymous: requires valid deleteToken in body
+ * 2. Authenticated owner: verified via session (no token needed)
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { createClient } from "@/utils/supabase/server";
+import { createClient, createAdminClient } from "@/utils/supabase/server";
 
 const STORAGE_BUCKET = "html-files";
 
@@ -17,7 +19,6 @@ export async function DELETE(
   try {
     const { slug } = await params;
 
-    // Validate slug format (defense-in-depth)
     if (!slug || !/^[a-zA-Z0-9_-]{1,20}$/.test(slug)) {
       return NextResponse.json(
         { error: "Invalid slug format." },
@@ -25,53 +26,46 @@ export async function DELETE(
       );
     }
 
-    const body = await request.json();
-    const { deleteToken } = body;
-
-    if (!deleteToken || typeof deleteToken !== "string") {
-      return NextResponse.json(
-        { error: "deleteToken is required." },
-        { status: 400 },
-      );
-    }
-
+    // Try auth-based deletion first
     const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
+    const authClient = createClient(cookieStore);
+    const { data: { user } } = await authClient.auth.getUser();
 
-    // Lookup share by slug
-    const { data: share, error: lookupError } = await supabase
+    // Use admin client for storage + DB ops (bypasses RLS)
+    const adminClient = createAdminClient();
+
+    const { data: share, error: lookupError } = await adminClient
       .from("shares")
-      .select("id, storage_path, delete_token")
+      .select("id, storage_path, delete_token, user_id")
       .eq("slug", slug)
       .single();
 
     if (lookupError || !share) {
-      return NextResponse.json(
-        { error: "Share not found." },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "Share not found." }, { status: 404 });
     }
 
-    // Verify delete token
-    if (share.delete_token !== deleteToken) {
-      return NextResponse.json(
-        { error: "Invalid delete token." },
-        { status: 403 },
-      );
+    // Authorization: either owner (auth) or valid delete token (anonymous)
+    const isOwner = user && share.user_id === user.id;
+
+    if (!isOwner) {
+      const body = await request.json().catch(() => ({}));
+      const { deleteToken } = body;
+      if (!deleteToken || share.delete_token !== deleteToken) {
+        return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+      }
     }
 
     // Delete from storage
-    const { error: storageError } = await supabase.storage
+    const { error: storageError } = await adminClient.storage
       .from(STORAGE_BUCKET)
       .remove([share.storage_path]);
 
     if (storageError) {
       console.error("Storage deletion failed:", storageError.message);
-      // Continue to delete DB row even if storage deletion fails
     }
 
     // Delete from database
-    const { error: dbError } = await supabase
+    const { error: dbError } = await adminClient
       .from("shares")
       .delete()
       .eq("id", share.id);
@@ -87,9 +81,6 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("Delete share error:", err);
-    return NextResponse.json(
-      { error: "Internal server error." },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error." }, { status: 500 });
   }
 }

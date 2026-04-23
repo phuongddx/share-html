@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { BookmarkToggle } from "@/components/bookmark-toggle";
 import { FileCode, FileText, Eye, Clock, Calendar } from "lucide-react";
 import type { Share } from "@/types/share";
 
@@ -99,9 +100,12 @@ export default async function SharePage({ params }: SharePageProps) {
               </div>
               <CardTitle className="truncate text-lg">{share.filename}</CardTitle>
             </div>
-            <Badge variant="outline" className="shrink-0">
-              {isMarkdown ? "Markdown" : "HTML"}
-            </Badge>
+            <div className="flex items-center gap-2 shrink-0">
+              <Badge variant="outline">
+                {isMarkdown ? "Markdown" : "HTML"}
+              </Badge>
+              <BookmarkToggle shareId={share.id} slug={share.slug} />
+            </div>
           </div>
           <CardDescription className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
             <span className="flex items-center gap-1">
