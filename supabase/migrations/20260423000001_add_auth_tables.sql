@@ -17,8 +17,8 @@ CREATE TABLE user_profiles (
 );
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public read profiles" ON user_profiles FOR SELECT USING (true);
-CREATE POLICY "Owner update profile" ON user_profiles FOR UPDATE USING (id = auth.uid());
-CREATE POLICY "Owner insert profile" ON user_profiles FOR INSERT WITH CHECK (id = auth.uid());
+CREATE POLICY "Owner update profile" ON user_profiles FOR UPDATE TO authenticated USING ((select auth.uid()) = id) WITH CHECK ((select auth.uid()) = id);
+CREATE POLICY "Owner insert profile" ON user_profiles FOR INSERT TO authenticated WITH CHECK ((select auth.uid()) = id);
 
 -- 3. Create favorites table
 CREATE TABLE favorites (
@@ -29,14 +29,14 @@ CREATE TABLE favorites (
   UNIQUE(user_id, share_id)
 );
 ALTER TABLE favorites ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Owner read favorites" ON favorites FOR SELECT USING (user_id = auth.uid());
-CREATE POLICY "Owner insert favorite" ON favorites FOR INSERT WITH CHECK (user_id = auth.uid());
-CREATE POLICY "Owner delete favorite" ON favorites FOR DELETE USING (user_id = auth.uid());
+CREATE POLICY "Owner read favorites" ON favorites FOR SELECT TO authenticated USING ((select auth.uid()) = user_id);
+CREATE POLICY "Owner insert favorite" ON favorites FOR INSERT TO authenticated WITH CHECK ((select auth.uid()) = user_id);
+CREATE POLICY "Owner delete favorite" ON favorites FOR DELETE TO authenticated USING ((select auth.uid()) = user_id);
 
 -- 4. RLS: owner can update their own shares
 -- NOTE: No DELETE policy — existing token-based delete uses service_role (bypasses RLS).
 -- Dashboard deletes go through API route using service_role too.
-CREATE POLICY "Owner update share" ON shares FOR UPDATE USING (user_id = auth.uid());
+CREATE POLICY "Owner update share" ON shares FOR UPDATE TO authenticated USING ((select auth.uid()) = user_id) WITH CHECK ((select auth.uid()) = user_id);
 
 -- 5. Auto-create user_profile on signup
 CREATE OR REPLACE FUNCTION handle_new_user()
@@ -62,7 +62,7 @@ BEGIN
 EXCEPTION WHEN OTHERS THEN
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
