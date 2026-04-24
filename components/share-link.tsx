@@ -4,7 +4,8 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Check, Copy, ExternalLink, Trash2, AlertTriangle } from "lucide-react";
+import { SharePasswordForm } from "@/components/share-password-form";
+import { Check, Copy, ExternalLink, Trash2, AlertTriangle, Lock } from "lucide-react";
 import type { UploadResult } from "@/components/upload-dropzone";
 
 interface ShareLinkProps {
@@ -14,6 +15,8 @@ interface ShareLinkProps {
 export function ShareLink({ result }: ShareLinkProps) {
   const [copied, setCopied] = useState(false);
   const [deleteShown, setDeleteShown] = useState(true);
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const [hasPassword, setHasPassword] = useState(false);
 
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/s/${result.slug}` : `/s/${result.slug}`;
   const deleteUrl =
@@ -126,6 +129,30 @@ export function ShareLink({ result }: ShareLinkProps) {
               <Trash2 className="size-3" />
               Dismiss
             </Button>
+          </div>
+        )}
+        {/* Password protection — available for anonymous uploads via delete_token */}
+        {result.deleteToken && (
+          <div className="rounded-lg border p-3 flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => setPasswordOpen((o) => !o)}
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full text-left"
+            >
+              <Lock className="size-4 shrink-0" />
+              {hasPassword ? "Password set — click to change" : "Add password protection"}
+            </button>
+            {passwordOpen && (
+              <SharePasswordForm
+                slug={result.slug}
+                deleteToken={result.deleteToken}
+                hasPassword={hasPassword}
+                onSuccess={(hp) => {
+                  setHasPassword(hp);
+                  if (!hp) setPasswordOpen(false);
+                }}
+              />
+            )}
           </div>
         )}
       </CardContent>

@@ -1,6 +1,8 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { createClient } from "@/utils/supabase/server";
+import { createClient, createAdminClient } from "@/utils/supabase/server";
+import { hasValidAccessCookie } from "@/lib/share-access-cookie";
+import { PasswordGate } from "@/components/password-gate";
 import { HtmlViewer } from "@/components/html-viewer";
 import { MarkdownViewerWrapper } from "@/components/markdown-viewer-wrapper";
 import {
@@ -52,34 +54,55 @@ function formatFileSize(bytes: number): string {
 export default async function SharePage({ params }: SharePageProps) {
   const { slug } = await params;
   const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
 
-  const { data: share, error: fetchError } = await supabase
+  // Use admin client to fetch share — needed for password_hash + bypasses RLS for is_private
+  const adminClient = createAdminClient();
+  const { data: share, error: fetchError } = await adminClient
     .from("shares")
-    .select("*")
+    .select("id,slug,filename,storage_path,content_text,file_size,mime_type,delete_token,user_id,title,custom_slug,source,is_private,password_hash,created_at,updated_at,expires_at,view_count")
     .eq("slug", slug)
     .single<Share>();
 
-  if (fetchError || !share) {
-    notFound();
-  }
+  if (fetchError || !share) notFound();
 
-  if (share.expires_at && new Date(share.expires_at) < new Date()) {
-    notFound();
-  }
+  if (share.expires_at && new Date(share.expires_at) < new Date()) notFound();
 
-  const { data: newCount } = await supabase.rpc("increment_view_count", {
+  // --- ACCESS GATE ---
+  const authClient = createClient(cookieStore);
+  const { data: { user } } = await authClient.auth.getUser();
+  const isOwner = !!user && user.id === share.user_id;
+
+  if (!isOwner) {
+    // Private shares: owner-only (is_private and password_hash are mutually exclusive)
+    if (share.is_private) notFound();
+
+    // Valid access cookie from a previous successful password entry
+    if (!(await hasValidAccessCookie(slug))) {
+      // Password-protected: gate both anonymous and non-owner authenticated users
+      if (share.password_hash) {
+        return <PasswordGate slug={slug} title={share.title ?? share.filename} />;
+      }
+
+      // No password, no session: redirect to login
+      if (!user) {
+        redirect(`/auth/login?next=/s/${slug}`);
+      }
+      // Non-owner authenticated user on unprotected share: allow
+    }
+  }
+  // --- END ACCESS GATE ---
+
+  // Increment view count only after successful access
+  const { data: newCount } = await adminClient.rpc("increment_view_count", {
     share_slug: slug,
   });
   const viewCount = typeof newCount === "number" ? newCount : share.view_count + 1;
 
-  const { data: fileData, error: storageError } = await supabase.storage
+  const { data: fileData, error: storageError } = await adminClient.storage
     .from("html-files")
     .download(share.storage_path);
 
-  if (storageError || !fileData) {
-    notFound();
-  }
+  if (storageError || !fileData) notFound();
 
   const fileContent = await fileData.text();
   const isMarkdown = share.mime_type === "text/markdown";

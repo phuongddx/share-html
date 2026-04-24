@@ -21,13 +21,17 @@ DropItX is a Next.js 16 application (App Router) deployed on Vercel with Supabas
 │  POST /api/upload     GET /s/[slug]    GET /api/search       │
 │  POST /api/publish    GET/PATCH/DELETE /api/shares/[slug]    │
 │  POST /api/images/upload                                     │
+│  POST /api/shares/[slug]/unlock                              │
+│  POST /api/shares/[slug]/set-password                        │
 │  GET|POST /api/v1/keys    DELETE /api/v1/keys/[id]           │
 │  POST /api/v1/documents   GET /api/v1/documents              │
 │  GET /api/v1/documents/[slug]   PATCH|DELETE /api/v1/..      │
 │                                                              │
 │  ┌─────────────────────────────────────────────────────┐    │
-│  │  lib/api-auth.ts     utils/supabase/server.ts       │    │
-│  │  createClient()      createAdminClient()            │    │
+│  │  lib/api-auth.ts          utils/supabase/server.ts  │    │
+│  │  lib/password.ts          lib/share-access-cookie.ts│    │
+│  │  lib/rate-limit.ts        createClient()            │    │
+│  │  createAdminClient()                                │    │
 │  └────────┬──────────────────────┬──────────────────────┘   │
 └───────────┼──────────────────────┼──────────────────────────┘
             │                      │
@@ -40,9 +44,9 @@ DropItX is a Next.js 16 application (App Router) deployed on Vercel with Supabas
 
   CLI (packages/cli/)
   ──────────────────
-  share-html publish <file>  →  POST /api/v1/documents
-  share-html list            →  GET  /api/v1/documents
-  share-html delete <slug>   →  DELETE /api/v1/documents/[slug]
+  share-html publish <file> [-P password]  →  POST /api/v1/documents
+  share-html list                          →  GET  /api/v1/documents
+  share-html delete <slug>                 →  DELETE /api/v1/documents/[slug]
   Config: ~/.share-html/config.json (mode 0600)
 ```
 
@@ -64,6 +68,7 @@ RootLayout (app/layout.tsx)
     │       ├── EditorPreview (react-markdown + shiki)
     │       └── EditorPublishBar
     ├── /s/[slug] (SharePage)
+    │   ├── PasswordGate (full-page password form — rendered when share has password)
     │   ├── HtmlViewer (sandboxed iframe, for .html files)
     │   ├── MarkdownViewerWrapper (lazy loaded, for .md files)
     │   └── BookmarkToggle
@@ -72,11 +77,13 @@ RootLayout (app/layout.tsx)
     │   └── SearchResults
     ├── /auth/login
     │   ├── Google OAuth button
-    │   └── GitHub OAuth button
+    │   ├── GitHub OAuth button
+    │   └── Contextual message ("Sign in to view shared content" when ?next=/s/*)
     ├── /dashboard
     │   ├── layout.tsx (sidebar nav)
     │   ├── page.tsx (share list + stats)
-    │   │   ├── DashboardShareCard
+    │   │   ├── DashboardShareCard (with lock/unlock password toggle)
+    │   │   │   └── SharePasswordForm
     │   │   └── ApiKeyManager
     │   ├── profile/page.tsx → ProfileForm
     │   └── favorites/page.tsx → DashboardShareCard list
@@ -109,6 +116,17 @@ Subsequent requests:
   → UPDATE last_used_at (async)
 ```
 
+### Share Access Cookie (Password-Protected Shares)
+```
+POST /api/shares/[slug]/unlock { password }
+  → checkPasswordRateLimit: 5 attempts / 10 min per IP
+      → fail-closed: 503 when Upstash Redis is unavailable
+  → bcryptjs.compare(password, shares.password_hash)
+  → On match: sign token with HMAC-SHA256 (SHARE_ACCESS_SECRET env var, 32+ chars)
+    → Set-Cookie: share_access_{slug}=<signed>; HttpOnly; SameSite=Lax; Max-Age=86400
+  → Subsequent GET /s/[slug]: cookie verified, access granted for 24 h
+```
+
 ### Auth Layers
 | Layer | Implementation |
 |-------|---------------|
@@ -116,6 +134,7 @@ Subsequent requests:
 | Session | Supabase SSR cookies, PKCE flow |
 | OAuth | Google and GitHub via Supabase config |
 | API Key | SHA-256 hash lookup in `api_keys`; soft-revoke via `revoked_at` |
+| Share access cookie | HMAC-SHA256 signed HttpOnly cookie; 24 h TTL; issued by `/api/shares/[slug]/unlock` |
 | RLS | Owner-only on `user_profiles`, `favorites`, `api_keys`; private share filter |
 
 ### Supabase Client Usage
@@ -165,10 +184,11 @@ User drags image into EditorPane
 
 ### API Publish Flow
 ```
-CLI: share-html publish file.md
+CLI: share-html publish file.md [-P password]
   → Read ~/.share-html/config.json for API key
-  → POST /api/v1/documents { content, title, slug, is_private }
+  → POST /api/v1/documents { content, title, slug, is_private, password? }
     → lib/api-auth.ts: hash Bearer token, lookup api_keys
+    → password present → bcryptjs.hash(password, 10) stored in shares.password_hash
     → INSERT shares (source='editor')
   → Return { slug, url }
 ```
@@ -178,11 +198,37 @@ CLI: share-html publish file.md
 GET /s/[slug]
   → Server component: fetch share (anon client — private filter via RLS)
   → Check expiration → 404 if expired
+  → Access gate (in order):
+      1. Owner bypass   — session user_id == share.user_id → pass
+      2. Private check  — share.is_private + no session → login redirect (?next=/s/[slug])
+      3. Access cookie  — HMAC-SHA256 signed HttpOnly cookie present → pass
+      4. Password gate  — share.password_hash set → render PasswordGate component
+      5. Auth gate      — share requires auth → login redirect
   → Download content from Storage (admin client)
-  → RPC: increment_view_count(slug)
+  → RPC: increment_view_count(slug)  ← only reached after gate passes
   → Branch by mime_type:
     → text/markdown → MarkdownViewer (lazy, react-markdown + shiki)
     → text/html → HtmlViewer (sandboxed iframe + CSP)
+```
+
+### Password Unlock Flow
+```
+User submits password on PasswordGate
+  → POST /api/shares/[slug]/unlock { password }
+    → checkPasswordRateLimit (5 attempts/10 min per IP, fail-closed on Redis error)
+    → SELECT password_hash FROM shares WHERE slug = ?
+    → bcryptjs.compare(password, hash)
+    → On success: Set-Cookie: share_access_{slug}=<HMAC-SHA256 signed token>; HttpOnly; 24h
+  → Redirect: GET /s/[slug] (cookie auto-sent, gate passes)
+```
+
+### Set Password Flow
+```
+Owner sets/removes password
+  → POST /api/shares/[slug]/set-password { password? }
+    → Auth: session user_id == share.user_id OR delete_token header
+    → password present  → bcryptjs.hash(password, 10) → UPDATE shares.password_hash
+    → password absent   → UPDATE shares SET password_hash = NULL
 ```
 
 ### API Key Lifecycle
@@ -211,6 +257,7 @@ DELETE /api/v1/keys/[id]  →  set revoked_at = NOW()
 | `custom_slug` | VARCHAR(100) UNIQUE PARTIAL | `handle/slug` format |
 | `source` | TEXT | `'upload'` or `'editor'` |
 | `is_private` | BOOLEAN | hidden from search/listing for non-owners |
+| `password_hash` | TEXT (nullable) | bcryptjs hash; never sent to client (`has_password: boolean` exposed instead) |
 | `updated_at` | TIMESTAMPTZ | updated by trigger |
 | `created_at` | TIMESTAMPTZ | auto-set |
 | `expires_at` | TIMESTAMPTZ | default NOW() + 30 days |
@@ -265,6 +312,7 @@ DELETE /api/v1/keys/[id]  →  set revoked_at = NOW()
 | `20260424000001_add_editor_columns.sql` | `shares.source`, `shares.custom_slug`, `shares.is_private`, `shares.updated_at` |
 | `20260424000002_add_api_keys.sql` | `api_keys` table + RLS |
 | `20260424000003_private_search_filter.sql` | Updates `search_shares` RPC to filter private shares |
+| `20260425000001_add_share_password.sql` | `shares.password_hash` (nullable TEXT) |
 
 ## Security Layers
 
@@ -272,13 +320,14 @@ DELETE /api/v1/keys/[id]  →  set revoked_at = NOW()
 |-------|---------------|
 | File validation | Extension (.html/.htm/.md), MIME type, size ≤ 50 MB |
 | Image validation | MIME type (png/jpg/gif/webp), size ≤ 5 MB, auth required |
-| Rate limiting | Upstash sliding window, 10 req/min per IP |
+| Rate limiting | Upstash sliding window: 10 req/min per IP (upload/API); 5 attempts/10 min per IP (password unlock); fail-closed (503 on Redis error) |
 | HtmlViewer sandbox | `sandbox="allow-scripts"` + CSP meta tag |
 | Delete protection | Random 32-char token (file-upload shares) |
 | Slug validation | Regex pattern check on API routes |
 | DB access | RLS for reads; service_role for writes |
 | API key auth | SHA-256 hash stored; `revoked_at` soft-delete; prefix for display |
 | Private shares | RLS + `search_shares` RPC filter non-owner requests |
+| Password protection | bcryptjs hash in `shares.password_hash`; HMAC-SHA256 signed HttpOnly access cookie (24 h); `password_hash` never sent to client |
 | Compensating tx | Storage cleanup if DB insert fails |
 
 ## Infrastructure

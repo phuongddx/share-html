@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/utils/supabase/server";
 import { authenticateApiKey } from "@/lib/api-auth";
 import { extractTextFromMarkdown } from "@/lib/extract-text";
+import { hashPassword } from "@/lib/password";
 import { buildShareUrl } from "@/lib/api-utils";
 import type { Share } from "@/types/share";
 
@@ -73,14 +74,23 @@ export async function PATCH(
     const { share, supabase } = result;
 
     const body = await request.json();
-    const { content, filename, title, is_private } = body as {
-      content?: string; filename?: string; title?: string; is_private?: boolean;
+    const { content, filename, title, is_private, password } = body as {
+      content?: string; filename?: string; title?: string;
+      is_private?: boolean; password?: string | null;
     };
 
     const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
     if (filename !== undefined) updates.filename = filename;
     if (title !== undefined) updates.title = title;
     if (is_private !== undefined) updates.is_private = is_private;
+
+    if (password !== undefined) {
+      if (password === null || password === "") {
+        updates.password_hash = null;
+      } else if (typeof password === "string" && password.length >= 4) {
+        updates.password_hash = await hashPassword(password);
+      }
+    }
 
     if (content !== undefined) {
       if (typeof content !== "string" || content.trim().length === 0) {

@@ -1,17 +1,29 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 
+/** Only allow redirects to share pages to prevent open redirect attacks. */
+function isValidRedirect(path: string | null): boolean {
+  if (!path) return false;
+  return path.startsWith("/s/") && !path.includes("//") && !path.includes("\\");
+}
+
 export default function LoginPage() {
   const supabase = createClient();
+  const searchParams = useSearchParams();
+  const nextPath = searchParams.get("next");
+  const isShareRedirect = isValidRedirect(nextPath);
 
   const login = async (provider: "google" | "github") => {
+    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    if (isShareRedirect && nextPath) {
+      callbackUrl.searchParams.set("next", nextPath);
+    }
     await supabase.auth.signInWithOAuth({
       provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
+      options: { redirectTo: callbackUrl.toString() },
     });
   };
 
@@ -21,7 +33,9 @@ export default function LoginPage() {
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold">Sign in</h1>
           <p className="text-sm text-muted-foreground">
-            Continue with your preferred provider
+            {isShareRedirect
+              ? "Sign in to view shared content"
+              : "Continue with your preferred provider"}
           </p>
         </div>
 

@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { Heart } from "lucide-react";
 import { DashboardShareCard } from "@/components/dashboard-share-card";
 import type { Share } from "@/types/share";
+import type { ShareWithPasswordFlag } from "@/app/dashboard/page";
 
 interface FavoriteRow {
   share_id: string;
@@ -25,7 +26,10 @@ export default async function FavoritesPage() {
     .order("created_at", { ascending: false });
 
   const favList = (favorites ?? []) as unknown as FavoriteRow[];
-  const shares = favList.map((f) => f.shares).filter((s): s is Share => !!s);
+  const shares: ShareWithPasswordFlag[] = favList
+    .map((f) => f.shares)
+    .filter((s): s is Share => !!s)
+    .map(({ password_hash, ...rest }) => ({ ...rest, has_password: !!password_hash }));
 
   return (
     <div className="space-y-6">

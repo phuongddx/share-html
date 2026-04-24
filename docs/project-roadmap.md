@@ -2,11 +2,11 @@
 
 ## Current Status Overview
 
-DropItX has completed Phase 1 through Phase 3, delivering core file sharing, full-text search, user authentication, a Markdown editor, REST API with API key management, and a CLI tool. The project is now focused on production hardening and future enhancements.
+DropItX has completed Phase 1 through Phase 3.5, delivering core file sharing, full-text search, user authentication, a Markdown editor, REST API with API key management, a CLI tool, and a Share Access Security Layer. The project is now focused on production hardening and future enhancements.
 
 ### Current Phase: Production Hardening & Future Enhancements
 
-**Progress**: Phase 1–3 complete  
+**Progress**: Phase 1–3.5 complete  
 **Key Focus**: Testing, monitoring, analytics, and next-wave features
 
 ## Project Timeline
@@ -76,6 +76,31 @@ DropItX has completed Phase 1 through Phase 3, delivering core file sharing, ful
 - [x] `20260424000002_add_api_keys.sql`
 - [x] `20260424000003_private_search_filter.sql`
 
+### Phase 3.5: Share Access Security Layer — COMPLETE
+**Duration**: April 2026
+
+- [x] Password protection for shares (bcryptjs hash, never sent to client)
+- [x] `PasswordGate` full-page password form for protected shares
+- [x] `SharePasswordForm` reusable set/remove password UI
+- [x] `POST /api/shares/[slug]/unlock` — verify password, issue HMAC-SHA256 signed access cookie (24 h, HttpOnly)
+- [x] `POST /api/shares/[slug]/set-password` — owner/delete_token auth, set or remove password
+- [x] View gate: owner bypass → is_private → access cookie → password gate → auth gate → login redirect
+- [x] View count increments only after gate passes
+- [x] Password rate limiting: 5 attempts / 10 min per IP, fail-closed on Redis error
+- [x] Login redirect: `?next=/s/*` param with contextual "Sign in to view shared content" message
+- [x] CLI `-P/--password` flag on `publish` command
+- [x] API v1 `password` field on `POST /api/v1/documents` and `PATCH /api/v1/documents/[slug]`
+- [x] Dashboard lock/unlock toggle on share cards
+
+#### New Environment Variable
+- `SHARE_ACCESS_SECRET` — 32+ char random string for HMAC cookie signing (required)
+
+#### New Dependency
+- `bcryptjs` — password hashing
+
+#### Migrations Delivered
+- [x] `20260425000001_add_share_password.sql`
+
 ### Phase 4: Production & Future Features — PLANNED
 **Duration**: Q3 2026 onward
 
@@ -116,4 +141,6 @@ DropItX has completed Phase 1 through Phase 3, delivering core file sharing, ful
 | Storage cost growth | Expiration cleanup; storage usage monitoring |
 | XSS in HTML rendering | CSP headers; sandboxed iframe |
 | API key compromise | Hashes only stored; instant soft-revocation |
+| Password brute-force on shares | Rate limiting (5/10 min); bcryptjs cost factor; fail-closed on Redis error |
+| Cookie forgery on password-gated shares | HMAC-SHA256 with 32+ char secret; HttpOnly; 24 h expiry |
 | Slow user adoption | Unique CLI + API value proposition; developer-focused features |

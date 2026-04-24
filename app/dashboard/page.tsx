@@ -5,6 +5,8 @@ import { DashboardShareCard } from "@/components/dashboard-share-card";
 import { FileText, Eye, HardDrive } from "lucide-react";
 import type { Share } from "@/types/share";
 
+export type ShareWithPasswordFlag = Omit<Share, "password_hash"> & { has_password: boolean };
+
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -24,7 +26,11 @@ export default async function DashboardPage() {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  const shareList: Share[] = shares ?? [];
+  // Strip password_hash from client data; expose only a boolean flag
+  const shareList: ShareWithPasswordFlag[] = (shares ?? []).map((s: Share) => {
+    const { password_hash, ...rest } = s;
+    return { ...rest, has_password: !!password_hash };
+  });
   const totalShares = shareList.length;
   const totalViews = shareList.reduce((sum, s) => sum + s.view_count, 0);
   const totalSize = shareList.reduce((sum, s) => sum + (s.file_size ?? 0), 0);

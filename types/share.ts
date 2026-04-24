@@ -9,7 +9,12 @@ export interface Share {
   delete_token: string;
   user_id: string | null;
   title: string | null;
+  custom_slug: string | null;
+  source: string | null;
+  is_private: boolean;
+  password_hash: string | null;
   created_at: string;
+  updated_at: string;
   expires_at: string;
   view_count: number;
 }

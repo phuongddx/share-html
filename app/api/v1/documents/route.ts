@@ -12,6 +12,7 @@ import { authenticateApiKey } from "@/lib/api-auth";
 import { generateSlug, generateDeleteToken } from "@/lib/nanoid";
 import { extractTextFromMarkdown } from "@/lib/extract-text";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { hashPassword } from "@/lib/password";
 import { buildShareUrl, getClientIp } from "@/lib/api-utils";
 
 const MAX_CONTENT_SIZE = 1024 * 1024; // 1 MB
@@ -42,9 +43,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { content, filename, title, is_private, custom_slug } = body as {
+    const { content, filename, title, is_private, custom_slug, password } = body as {
       content?: string; filename?: string; title?: string;
-      is_private?: boolean; custom_slug?: string;
+      is_private?: boolean; custom_slug?: string; password?: string;
     };
 
     if (!content || typeof content !== "string" || content.trim().length === 0) {
@@ -63,6 +64,11 @@ export async function POST(request: NextRequest) {
     const storagePath = `${randomUUID()}.md`;
     const resolvedFilename = filename || "document.md";
     const contentText = extractTextFromMarkdown(content);
+
+    let passwordHash: string | null = null;
+    if (password && typeof password === "string" && password.length >= 4) {
+      passwordHash = await hashPassword(password);
+    }
 
     const supabase = createAdminClient();
     const fileBody = new TextEncoder().encode(content);
@@ -83,6 +89,7 @@ export async function POST(request: NextRequest) {
       user_id: auth.userId, title: resolvedTitle,
       custom_slug: custom_slug || null, source: "editor",
       is_private: is_private ?? false,
+      password_hash: passwordHash,
     });
 
     if (dbError) {

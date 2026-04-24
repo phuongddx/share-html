@@ -4,6 +4,40 @@ All notable changes to DropItX.
 
 ---
 
+## [v1.2.0] — 2026-04-25
+
+### Added
+- **Password protection for shares**: bcryptjs hash stored in `shares.password_hash`; `has_password: boolean` flag exposed to clients (raw hash never sent)
+- **`PasswordGate` component**: full-page password entry form rendered when a share is password-protected
+- **`SharePasswordForm` component**: reusable set/remove password form used in dashboard share cards
+- **`POST /api/shares/[slug]/unlock`**: verifies password and issues an HMAC-SHA256 signed HttpOnly access cookie (24 h TTL)
+- **`POST /api/shares/[slug]/set-password`**: owner or delete_token auth; sets or clears `password_hash`
+- **`lib/password.ts`**: bcryptjs `hashPassword` / `verifyPassword` helpers
+- **`lib/share-access-cookie.ts`**: HMAC-SHA256 cookie signing/verification using `SHARE_ACCESS_SECRET`
+- **`checkPasswordRateLimit`** in `lib/rate-limit.ts`: 5 attempts / 10 min per IP sliding window; fail-closed (503) when Redis is unavailable
+- **View gate on `/s/[slug]`**: layered access control — owner bypass → is_private → access cookie → password gate → auth gate → login redirect; view count increments only after gate passes
+- **Login redirect**: `app/auth/login/page.tsx` reads `?next=` param (validated as `/s/*`), passes through OAuth callback, shows "Sign in to view shared content" contextual message
+- **Dashboard lock/unlock toggle**: share cards show password lock state with set/remove controls via `SharePasswordForm`
+- **Password section in `ShareLink`**: anonymous upload flow can optionally set a password on the share
+- **CLI `-P/--password` flag**: `share-html publish <file> -P <password>` sets password on publish
+- **API v1 `password` field**: `POST /api/v1/documents` and `PATCH /api/v1/documents/[slug]` accept optional `password` field
+
+### Database Migrations
+- `20260425000001_add_share_password.sql`: `shares.password_hash` (nullable TEXT)
+
+### New Environment Variable
+- `SHARE_ACCESS_SECRET` — 32+ char random string for HMAC cookie signing (required for password-gated shares)
+
+### New Dependencies
+- `bcryptjs` — password hashing
+
+### Security Model
+- All `/s/[slug]` views require login OR valid password cookie. Owner always bypasses gate.
+- `password_hash` is never returned to the client; API exposes `has_password: boolean` only.
+- Rate limiting is fail-closed: if Redis is unavailable, password unlock returns 503 (no silent bypass).
+
+---
+
 ## [v1.1.0] — 2026-04-24
 
 ### Added
