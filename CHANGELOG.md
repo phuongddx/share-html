@@ -5,6 +5,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-04-24
+
+### Added
+
+- In-browser Markdown editor with split-pane live preview (CodeMirror 6)
+- Scroll synchronization between editor and preview panes
+- Slash commands in editor (`/image`, `/heading`, `/code`, etc.)
+- Image drag-and-drop directly into editor with inline preview
+- Editor auto-save (draft persistence in localStorage)
+- Unload warning when unsaved changes are present
+- Publish from editor with title, custom slug, and privacy toggle
+- `POST /api/publish` — editor publish endpoint (session auth, rate-limited)
+- `POST /api/images/upload` — inline image upload (PNG/JPG/GIF/WebP, max 5 MB, auth required)
+- REST API v1 for programmatic document management:
+  - `POST /api/v1/documents` — create document from Markdown content
+  - `GET /api/v1/documents` — list own documents (paginated)
+  - `GET /api/v1/documents/[slug]` — get document metadata
+  - `PATCH /api/v1/documents/[slug]` — update content/metadata
+  - `DELETE /api/v1/documents/[slug]` — delete document
+- API key management (`GET/POST /api/v1/keys`, `DELETE /api/v1/keys/[id]`)
+- API key UI in dashboard (`ApiKeyManager` component)
+- CLI tool (`share-html`) for publishing Markdown from the terminal:
+  - `login`, `publish`, `update`, `delete`, `list`, `whoami` commands
+- Private shares (`is_private` flag) — hidden from search, owner-only access
+- Custom slug support (`handle/slug` format)
+- Supabase migrations: editor columns, API keys table, private search filter
+
+### Changed
+
+- Shares table extended with `title`, `custom_slug`, `is_private`, `source`, `updated_at`
+- Image upload allowed MIME types expanded (`image/png`, `image/jpeg`, `image/gif`, `image/webp`)
+- Storage bucket updated: 50 MB limit (aligned with upload limit)
+
+### Security
+
+- API keys stored as SHA-256 hashes only — plaintext never persisted
+- Soft revocation (`revoked_at`) preserves audit history
+- `is_private` enforced via Row Level Security (`NOT is_private OR user_id = auth.uid()`)
+- API key authentication requires cookie-auth session to bootstrap (prevents key-loop abuse)
+
 ## [1.0.0] - 2026-04-23
 
 ### Added
