@@ -23,6 +23,11 @@
 # misc
 .DS_Store
 *.pem
+/packages
+.omx
+/plans
+smartletter-data-binding-analysis.html
+repomix-output.xml
 
 # debug
 npm-debug.log*
