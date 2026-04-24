@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, createElement } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
 import { getHighlighter } from "@/lib/shiki-highlighter";
+import type { HeadingInfo } from "@/lib/use-scroll-sync";
 import "@/app/markdown-viewer.css";
 
 interface MarkdownViewerProps {
   content: string;
+  headings?: HeadingInfo[];
 }
 
 type ViewMode = "preview" | "raw";
@@ -56,7 +58,6 @@ function CodeBlock({ inline, className, children }: CodeBlockProps) {
         });
         setHtml(result);
       } catch {
-        // fallback: unknown language
         const result = hl.codeToHtml(code, {
           lang: "text",
           theme: theme === "dark" ? "github-dark" : "github-light",
@@ -64,7 +65,9 @@ function CodeBlock({ inline, className, children }: CodeBlockProps) {
         setHtml(result);
       }
     });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [code, lang, theme, inline]);
 
   if (inline) {
@@ -87,12 +90,96 @@ function CodeBlock({ inline, className, children }: CodeBlockProps) {
   );
 }
 
-const mdComponents: Components = {
-  code: CodeBlock as Components["code"],
-};
+// Custom heading components that inject data-heading-line for scroll sync
+function createHeadingComponents(headings?: HeadingInfo[]): Components {
+  if (!headings || headings.length === 0) return {};
 
-export function MarkdownViewer({ content }: MarkdownViewerProps) {
+  const headingCounter = { current: -1 };
+
+  return {
+    h1: ({ children, ...props }) => {
+      headingCounter.current++;
+      const heading = headings[headingCounter.current];
+      return createElement(
+        "h1",
+        {
+          ...props,
+          "data-heading-line": heading?.line,
+        },
+        children
+      );
+    },
+    h2: ({ children, ...props }) => {
+      headingCounter.current++;
+      const heading = headings[headingCounter.current];
+      return createElement(
+        "h2",
+        {
+          ...props,
+          "data-heading-line": heading?.line,
+        },
+        children
+      );
+    },
+    h3: ({ children, ...props }) => {
+      headingCounter.current++;
+      const heading = headings[headingCounter.current];
+      return createElement(
+        "h3",
+        {
+          ...props,
+          "data-heading-line": heading?.line,
+        },
+        children
+      );
+    },
+    h4: ({ children, ...props }) => {
+      headingCounter.current++;
+      const heading = headings[headingCounter.current];
+      return createElement(
+        "h4",
+        {
+          ...props,
+          "data-heading-line": heading?.line,
+        },
+        children
+      );
+    },
+    h5: ({ children, ...props }) => {
+      headingCounter.current++;
+      const heading = headings[headingCounter.current];
+      return createElement(
+        "h5",
+        {
+          ...props,
+          "data-heading-line": heading?.line,
+        },
+        children
+      );
+    },
+    h6: ({ children, ...props }) => {
+      headingCounter.current++;
+      const heading = headings[headingCounter.current];
+      return createElement(
+        "h6",
+        {
+          ...props,
+          "data-heading-line": heading?.line,
+        },
+        children
+      );
+    },
+  };
+}
+
+export function MarkdownViewer({ content, headings }: MarkdownViewerProps) {
   const [mode, setMode] = useState<ViewMode>("preview");
+  const headingComponents = createHeadingComponents(headings);
+
+  const mdComponents: Components = {
+    code: CodeBlock as Components["code"],
+    ...headingComponents,
+  };
 
   return (
     <div className="flex flex-col gap-3">
