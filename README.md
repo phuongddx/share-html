@@ -1,24 +1,31 @@
-# Share HTML
+# DropItX
 
-Drop HTML and Markdown files, get short shareable links. Built with Next.js 16, Supabase, and Tailwind CSS.
+Drop HTML and Markdown files, write in the built-in editor, and get short shareable links. Programmatic access via REST API and CLI. Built with Next.js 16, Supabase, and Tailwind CSS.
 
 ## Features
 
-- **Upload**: Drag-and-drop HTML and Markdown files (up to 50MB)
+- **Upload**: Drag-and-drop HTML and Markdown files (up to 50 MB)
+- **Editor**: Markdown editor with live split-pane preview (CodeMirror 6)
 - **Markdown**: GitHub-like rendered preview with syntax highlighting, toggle to raw source
-- **Share**: Short slug-based URLs (`/s/abc123`)
-- **Search**: Full-text search across uploaded content
-- **Security**: Sandboxed iframe viewing with CSP, rate limiting
+- **Share**: Short slug-based URLs (`/s/abc123`), optional custom slugs
+- **Private shares**: `is_private` flag hides shares from search and public listing
+- **Search**: Full-text search across all content
+- **Auth**: Google and GitHub OAuth; user dashboard, profile, favorites
+- **API**: REST API v1 for programmatic document management (Bearer API key)
+- **CLI**: `share-html` binary for publish/update/delete from the terminal
+- **Security**: Sandboxed iframe viewing with CSP, rate limiting, RLS on all tables
 - **Themes**: Light/dark mode
 - **Auto-expire**: Shares expire after 30 days
 
 ## Tech Stack
 
 - **Next.js 16** (App Router, React 19)
-- **Supabase** (PostgreSQL, Storage, SSR cookie sessions)
-- **Tailwind CSS 4** + shadcn/ui
+- **TypeScript** (strict mode)
+- **Supabase** (PostgreSQL, Storage, Auth — Google/GitHub OAuth)
+- **CodeMirror 6** (Markdown editor, SSR-disabled)
+- **Tailwind CSS 4** + shadcn/ui (OKLCH blue accent tokens)
 - **Upstash Redis** (rate limiting)
-- **TypeScript 5**
+- **CLI**: `packages/cli/` — TypeScript ESM, binary `share-html`
 
 ## Getting Started
 
@@ -26,6 +33,7 @@ Drop HTML and Markdown files, get short shareable links. Built with Next.js 16, 
 
 - Node.js 20+
 - Supabase project (or local via Supabase CLI)
+- Upstash Redis instance
 
 ### Setup
 
@@ -33,11 +41,11 @@ Drop HTML and Markdown files, get short shareable links. Built with Next.js 16, 
 # Install dependencies
 npm install
 
-# Environment variables (see Deployment Guide)
+# Copy and fill in environment variables
 cp .env.example .env.local
 
 # Run development server
-npm run dev
+npm run dev   # http://localhost:3000
 ```
 
 ### Environment Variables
@@ -46,40 +54,91 @@ npm run dev
 |----------|-------------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase anon/public key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key |
-| `UPSTASH_REDIS_REST_URL` | Upstash Redis endpoint |
-| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis token |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server-only) |
+| `UPSTASH_REDIS_REST_URL` | Upstash Redis REST endpoint |
+| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis auth token |
 
 ### Database Setup
 
-Do not stop at `supabase/schema.sql`.
-
-`supabase/schema.sql` is the base share schema. Auth/dashboard support lives in `supabase/migrations/`.
-
-Recommended:
+`supabase/schema.sql` is the base shares schema. Auth, editor, and API key tables live in `supabase/migrations/`.
 
 ```bash
 supabase link --project-ref <your-project-ref>
 supabase db push
 ```
 
-If applying SQL manually, run `supabase/schema.sql` and then every file in `supabase/migrations/` in timestamp order.
+Manual alternative: run `supabase/schema.sql` then all files in `supabase/migrations/` in timestamp order.
 
-That setup creates:
-- `shares` table with full-text search
-- `user_profiles` and `favorites`
-- `search_shares()` and `increment_view_count()` RPCs
-- Storage bucket `html-files` (public, 50MB max)
+## CLI Quick Start
+
+```bash
+# Build and link the CLI
+cd packages/cli && npm install && npm run build && npm link
+
+# Authenticate (generate an API key at /dashboard first)
+share-html login
+
+# Publish a Markdown file
+share-html publish README.md -t "My Doc"
+
+# Publish as private
+share-html publish notes.md -t "Private Notes" -p
+
+# List your documents
+share-html list
+
+# Update content
+share-html update abc123 updated.md
+
+# Delete
+share-html delete abc123
+```
+
+## API Reference
+
+All v1 endpoints require `Authorization: Bearer <api-key>`. Generate keys at `/dashboard`.
+
+### Documents
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/v1/documents` | Create document |
+| `GET` | `/api/v1/documents` | List documents (`?limit=&offset=`) |
+| `GET` | `/api/v1/documents/:slug` | Get metadata + URL |
+| `PATCH` | `/api/v1/documents/:slug` | Update content/metadata |
+| `DELETE` | `/api/v1/documents/:slug` | Delete (204) |
+
+**Create document request body:**
+```json
+{
+  "content": "# Hello\n\nMarkdown content here.",
+  "title": "My Document",
+  "slug": "my-custom-slug",
+  "is_private": false
+}
+```
+
+### API Keys
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/v1/keys` | Create API key (returned once) |
+| `GET` | `/api/v1/keys` | List keys (prefix only, no hash) |
+| `DELETE` | `/api/v1/keys/:id` | Revoke key (soft-delete) |
 
 ## Project Structure
 
 ```
 app/                  # Next.js App Router pages and API routes
+app/editor/           # Markdown editor (SSR-disabled)
+app/api/v1/           # REST API (API key auth)
 components/           # React components (ui/ for primitives)
-lib/                  # Utility functions (nanoid, extract-text, rate-limit)
+lib/                  # Utilities (nanoid, extract-text, rate-limit, api-auth)
+lib/editor-extensions/# CodeMirror slash commands, image drop
 utils/supabase/       # Supabase client factories (browser, server, admin)
 types/                # TypeScript interfaces
-supabase/             # Schema and config
+supabase/             # Schema and migrations
+packages/cli/         # CLI tool (share-html binary)
 public/               # Static assets
 docs/                 # Project documentation
 ```
@@ -87,15 +146,18 @@ docs/                 # Project documentation
 ## Scripts
 
 - `npm run dev` — Development server
-- `npm run build` — Production build
+- `npm run build` — Production build + TypeScript check
 - `npm run lint` — ESLint
 
 ## Documentation
 
 See `docs/` for detailed documentation:
-- [Project Overview](docs/project-overview-pdr.md)
+
+- [Project Overview & PDR](docs/project-overview-pdr.md)
 - [System Architecture](docs/system-architecture.md)
+- [Codebase Summary](docs/codebase-summary.md)
 - [Code Standards](docs/code-standards.md)
 - [Deployment Guide](docs/deployment-guide.md)
 - [Design Guidelines](docs/design-guidelines.md)
 - [Project Roadmap](docs/project-roadmap.md)
+- [Changelog](docs/project-changelog.md)

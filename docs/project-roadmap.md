@@ -1,457 +1,119 @@
-# Share HTML Platform - Project Roadmap
+# DropItX - Project Roadmap
 
 ## Current Status Overview
 
-The Share HTML platform is currently in a functional state with core features implemented and deployed. The project has successfully completed Phase 1 and Phase 2 development and is now focusing on production readiness and future enhancements.
+DropItX has completed Phase 1 through Phase 3, delivering core file sharing, full-text search, user authentication, a Markdown editor, REST API with API key management, and a CLI tool. The project is now focused on production hardening and future enhancements.
 
-### Current Phase: Production Readiness (In Progress)
+### Current Phase: Production Hardening & Future Enhancements
 
-**Progress Status**: 75% Complete  
-**Estimated Completion**: Q2 2026  
-**Key Focus**: Security hardening, performance optimization, and comprehensive testing
+**Progress**: Phase 1–3 complete  
+**Key Focus**: Testing, monitoring, analytics, and next-wave features
 
 ## Project Timeline
 
-### Phase 1: Core Functionality ✅ COMPLETED
-**Duration**: November 2024 - December 2024  
-**Status**: Fully implemented and tested
+### Phase 1: Core Functionality — COMPLETE
+**Duration**: November 2024 – December 2024
 
-#### Completed Features
-- ✅ HTML file upload interface with drag-and-drop
-- ✅ Share link generation using nanoid slugs
-- ✅ HTML content viewer with sandboxed iframe
-- ✅ Basic error handling and validation
-- ✅ Database schema with Supabase integration
-- ✅ File storage in Supabase Storage bucket
+- [x] HTML file upload with drag-and-drop
+- [x] Share link generation (nanoid slugs)
+- [x] Sandboxed HTML viewer with CSP headers
+- [x] Basic error handling and validation
+- [x] Supabase schema with RLS policies
+- [x] File storage in Supabase Storage
 
-#### Technical Achievements
-- ✅ Next.js 16.2.4 with App Router implemented
-- ✅ Supabase database with RLS policies configured
-- ✅ Type-safe TypeScript implementation
-- ✅ Responsive UI with Tailwind CSS
-- ✅ Basic API endpoints for upload and viewing
+### Phase 2: Enhanced Features — COMPLETE
+**Duration**: January 2025 – February 2025
 
-### Phase 2: Enhanced Features ✅ COMPLETED
-**Duration**: January 2025 - February 2025  
-**Status**: Fully implemented and tested
+- [x] Full-text search with pagination (TSVECTOR + GIN + RPC)
+- [x] Rate limiting via Upstash Redis (10 req/min)
+- [x] Light/dark theme switching
+- [x] File metadata tracking (size, type, views)
+- [x] 30-day automatic expiration
+- [x] Delete token-based authorization
 
-#### Completed Features
-- ✅ Full-text search functionality with pagination
-- ✅ Rate limiting via Upstash Redis (10 req/min)
-- ✅ Light/dark theme switching
-- ✅ Advanced error handling and user feedback
-- ✅ File metadata tracking (size, type, views)
-- ✅ 30-day automatic expiration system
-- ✅ Delete token-based authorization
+### Phase 2.5: Upload & Format Enhancements — COMPLETE
+**Duration**: April 2026
 
-#### Technical Achievements
-- ✅ PostgreSQL full-text search integration
-- ✅ Supabase RPC functions for search optimization
-- ✅ Redis rate limiting with graceful degradation
-- ✅ Next-themes integration for theming
-- ✅ Comprehensive validation and security checks
+- [x] Upload size limit increased to 50 MB
+- [x] Markdown (.md) file upload support
+- [x] react-markdown + remark-gfm + shiki viewer
+- [x] Preview/raw toggle for Markdown files
+- [x] Lazy-loaded Markdown viewer (`next/dynamic`)
 
-### Phase 2.5: Upload & Format Enhancements ✅ COMPLETED
-**Duration**: April 2026  
-**Status**: Fully implemented and tested
+### Phase 3: Auth, Editor & API — COMPLETE
+**Duration**: April 2026
 
-#### Completed Features
-- ✅ Upload size limit increased from 10MB to 50MB
-- ✅ Markdown (.md) file upload support
-- ✅ Client-side markdown viewer with react-markdown + remark-gfm
-- ✅ Shiki syntax highlighting (10 curated languages)
-- ✅ Preview/raw toggle for markdown files
-- ✅ GitHub-like prose styling for rendered markdown
-- ✅ Lazy-loaded markdown viewer (next/dynamic)
+#### Auth & Dashboard
+- [x] Google/GitHub OAuth via Supabase (PKCE flow)
+- [x] User dashboard: share history, stats (count, views, storage)
+- [x] Profile settings: display name, avatar
+- [x] Favorites/bookmark system
+- [x] Header user menu (`AuthUserMenu`)
+- [x] RLS hardening across all tables
+- [x] Blue accent design system overhaul (OKLCH tokens)
 
-#### Technical Achievements
-- ✅ Supabase storage bucket reconfigured for 50MB
-- ✅ Upload API extended for multi-format support (HTML + MD)
-- ✅ Text extraction for markdown search indexing
-- ✅ Viewer routing by mime_type in share page
+#### Editor
+- [x] Markdown editor (`/editor`) with CodeMirror 6
+- [x] Live split-pane preview (react-markdown + shiki)
+- [x] Editor slash commands + image drag-and-drop extensions
+- [x] Auto-draft persistence to localStorage
+- [x] Dirty-state unload warning
+- [x] Publishing API: `POST /api/publish` (title, custom_slug, is_private)
+- [x] Inline image upload: `POST /api/images/upload`
 
-### Phase 3: Production Readiness 🔄 IN PROGRESS
-**Duration**: March 2025 - June 2025  
-**Status**: 75% Complete
+#### API & CLI
+- [x] REST API v1: `POST/GET /api/v1/documents`, `GET/PATCH/DELETE /api/v1/documents/[slug]`
+- [x] API key management: `POST/GET /api/v1/keys`, `DELETE /api/v1/keys/[id]`
+- [x] `ApiKeyManager` dashboard component
+- [x] `lib/api-auth.ts`: SHA-256 hash + `api_keys` lookup
+- [x] Private shares (`is_private` flag) with RLS + search filter
+- [x] CLI tool (`packages/cli/`): binary `share-html`
+  - `login`, `publish`, `update`, `delete`, `list`, `whoami`
 
-#### Completed Production Features
-- ✅ Security hardening with CSP headers
-- ✅ Comprehensive error boundary implementation
-- ✅ Loading states and user feedback
-- ✅ Performance optimization with React 19
-- ✅ Vercel deployment with production configuration
-- ✅ API monitoring and error tracking
+#### Migrations Delivered
+- [x] `20260423000001_add_auth_tables.sql`
+- [x] `20260424000001_add_editor_columns.sql`
+- [x] `20260424000002_add_api_keys.sql`
+- [x] `20260424000003_private_search_filter.sql`
 
-#### Remaining Tasks
-- ⏳ Comprehensive test suite implementation
-- ⏳ Security audit and penetration testing
-- ⏳ Performance benchmarking and optimization
-- ⏳ Monitoring and analytics setup
-- ⏳ Documentation completion
+### Phase 4: Production & Future Features — PLANNED
+**Duration**: Q3 2026 onward
 
-#### ✅ Newly Completed Features
-- ✅ User authentication system (Google/GitHub OAuth)
-- ✅ User dashboard with share history
-- ✅ Profile settings management
-- ✅ Favorites/bookmark system
-- ✅ Header user menu integration
-
-#### Key Focus Areas
-1. **Testing**: Unit tests, integration tests, E2E tests
-2. **Security**: Third-party security audit, penetration testing
-3. **Performance**: Load testing, optimization, monitoring
-4. **Monitoring**: Error tracking, user analytics, health checks
-
-### Phase 4: Future Enhancements 📋 PLANNED
-**Duration**: July 2025 - December 2025  
-**Status**: Planning phase
-
-#### Planned Features
-- 📋 User authentication system
-- 📋 File organization and tagging
-- 📋 Custom expiration dates
-- 📋 Email notifications system
-- 📋 Analytics dashboard
-- 📋 API for third-party integrations
-- 📋 Mobile applications
-- 📋 Collaborative features
-
-## Detailed Feature Roadmap
-
-### Q2 2025 (April - June) - Production Readiness
-
-#### April 2025
-**Priority**: High  
-**Focus**: Testing Infrastructure
-
-**Tasks**:
-- [ ] Implement comprehensive test suite
-  - Unit tests for all components
-  - Integration tests for API endpoints
-  - E2E tests for user workflows
-- [ ] Set up CI/CD pipeline with automated testing
-- [ ] Configure test environment with realistic data
-
-**Expected Outcomes**:
-- Test coverage: > 90%
-- Automated CI/CD pipeline
-- Reliable test environment
-
-**Metrics**:
-- Build success rate: > 99%
-- Test execution time: < 5 minutes
-- Code coverage: > 90%
-
-#### May 2025
-**Priority**: High  
-**Focus**: Security and Performance
-
-**Tasks**:
+#### Production Hardening
+- [ ] Comprehensive test suite (unit, integration, E2E)
 - [ ] Security audit and penetration testing
-  - Third-party security assessment
-  - Penetration testing by security team
-  - Vulnerability scanning
-- [ ] Performance optimization
-  - Database query optimization
-  - Frontend performance improvements
-  - Asset optimization and caching
+- [ ] Performance benchmarking and optimization
+- [ ] Production monitoring (error tracking, analytics, health checks)
+- [ ] CI/CD pipeline with automated tests
 
-**Expected Outcomes**:
-- Security audit report with actionable items
-- Performance benchmarks and improvements
-- Security vulnerabilities resolved
-
-**Metrics**:
-- Security score: > 90/100
-- Page load time: < 2 seconds
-- API response time: < 500ms
-
-#### June 2025
-**Priority**: High  
-**Focus**: Monitoring and Deployment
-
-**Tasks**:
-- [ ] Production monitoring setup
-  - Error tracking with Sentry
-  - Performance monitoring
-  - User analytics integration
-- [ ] Production deployment hardening
-  - Environment configuration
-  - Backup and recovery procedures
-  - Emergency response planning
-
-**Expected Outcomes**:
-- Complete monitoring stack
-- Production-ready deployment
-- Comprehensive documentation
-
-**Metrics**:
-- Uptime: > 99.9%
-- Error rate: < 1%
-- Response time: < 2 seconds
-
-### Q3 2025 (July - September) - User Features
-
-#### July 2025
-**Priority**: Medium  
-**Focus**: User Authentication ✅ COMPLETED
-
-**Tasks**:
-- ✅ Implement user authentication system
-  - OAuth providers (Google, GitHub)
-  - User registration and login
-  - Session management
-- ✅ User profiles and settings
-  - Profile management
-  - Preferences and customization
-  - Account security
-
-**Completed Outcomes**:
-- ✅ Complete authentication system deployed
-- ✅ User profiles functionality implemented
-- ✅ Secure session management configured
-
-**Metrics**:
-- User registration: Target 100 users/month
-- Login success rate: > 95%
-- Session security: Audited and verified
-
-#### August 2025
-**Priority**: Medium  
-**Focus**: File Management
-
-**Tasks**:
-- [ ] File organization features
-  - Folders and categories
-  - Tagging system
-  - Search and filter capabilities
-- [ ] Enhanced file management
-  - Bulk operations
-  - File versioning
-  - Metadata management
-
-**Expected Outcomes**:
-- Organized file management system
-- Advanced search and filtering
-- Efficient bulk operations
-
-**Metrics**:
-- Average files per user: Target 20
-- Search accuracy: > 90%
-- Operation speed: < 1 second
-
-#### September 2025
-**Priority**: Medium  
-**Focus**: Communication Features
-
-**Tasks**:
-- [ ] Email notifications system
-  - Upload confirmations
-  - Share notifications
-  - Expiration reminders
-- [ ] Enhanced sharing capabilities
-  - Collaborative sharing
-  - Permission management
-  - Share analytics
-
-**Expected Outcomes**:
-- Complete email notification system
-- Collaborative sharing features
-- Enhanced sharing analytics
-
-**Metrics**:
-- Email delivery rate: > 95%
-- Collaborative shares: Target 30% of shares
-- User engagement: Target 80% monthly active users
-
-### Q4 2025 (October - December) - Advanced Features
-
-#### October 2025
-**Priority**: Low  
-**Focus**: Analytics and Insights
-
-**Tasks**:
-- [ ] Analytics dashboard
-  - Usage statistics
-  - Performance metrics
-  - User behavior analytics
-- [ ] Business intelligence
-  - Trend analysis
-  - User segmentation
-  - Predictive analytics
-
-**Expected Outcomes**:
-- Comprehensive analytics platform
-- Business insights and trends
-- Data-driven decision making
-
-**Metrics**:
-- Daily active users: Target 1,000
-- Uploads per day: Target 500
-- Searches per day: Target 200
-
-#### November 2025
-**Priority**: Low  
-**Focus**: Third-party Integration
-
-**Tasks**:
-- [ ] Public API development
-  - REST API endpoints
-  - API documentation
-  - Developer portal
-- [ ] Third-party integrations
-  - CMS integrations
-  - Development tools
-  - Platform partnerships
-
-**Expected Outcomes**:
-- Complete API platform
-- Developer documentation
-- Third-party integration capabilities
-
-**Metrics**:
-- API usage: Target 100 calls/day
-- Third-party integrations: Target 5
-- Developer satisfaction: > 90%
-
-#### December 2025
-**Priority**: Low  
-**Focus**: Mobile and Advanced Features
-
-**Tasks**:
+#### Feature Backlog
+- [ ] File organization and tagging
+- [ ] Custom expiration dates
+- [ ] Email notifications (upload confirmation, expiration reminder)
+- [ ] Analytics dashboard (per-share view stats, trends)
 - [ ] Mobile applications
-  - React Native implementation
-  - iOS and Android apps
-  - Push notifications
-- [ ] Advanced features
-  - AI-powered search
-  - Content analysis
-  - Advanced security features
+- [ ] Collaborative features (shared workspaces)
+- [ ] Enterprise / multi-tenant features
 
-**Expected Outcomes**:
-- Mobile applications for iOS and Android
-- Advanced AI features
-- Enhanced security capabilities
+## Success Metrics
 
-**Metrics**:
-- Mobile users: Target 40% of users
-- AI search accuracy: > 85%
-- Security incidents: 0
+| Metric | Target |
+|--------|--------|
+| Uptime | > 99.9% |
+| Page load time | < 2 seconds |
+| API response time | < 500 ms |
+| Upload success rate | > 99% |
+| Error rate | < 1% |
+| Test coverage | > 90% |
+| Daily active users | 1,000 |
+| Uploads per day | 500 |
 
-## Success Metrics and KPIs
+## Risk Assessment
 
-### Technical Metrics
-- **Uptime**: Target 99.9%
-- **Response Time**: Target < 2 seconds
-- **Error Rate**: Target < 1%
-- **Test Coverage**: Target > 90%
-- **Security Score**: Target > 90/100
-
-### Business Metrics
-- **Daily Active Users**: Target 1,000
-- **Monthly Active Users**: Target 3,000
-- **File Uploads per Day**: Target 500
-- **Search Queries per Day**: Target 200
-- **Share Links Created**: Target 300 per day
-
-### User Experience Metrics
-- **Session Duration**: Target > 3 minutes
-- **Upload Success Rate**: Target > 99%
-- **Search Success Rate**: Target > 85%
-- **Mobile Usage**: Target 40%
-- **User Satisfaction**: Target > 90%
-
-## Risk Assessment and Mitigation
-
-### Technical Risks
-1. **Database Performance**
-   - Risk: Search queries become slow with large dataset
-   - Mitigation: Database indexing, query optimization, read replicas
-
-2. **Storage Costs**
-   - Risk: Supabase storage costs increase with usage
-   - Mitigation: Storage optimization, compression, cleanup policies
-
-3. **Security Vulnerabilities**
-   - Risk: XSS or injection attacks
-   - Mitigation: Regular security audits, input validation, CSP headers
-
-### Business Risks
-1. **User Adoption**
-   - Risk: Slow user growth
-   - Mitigation: Marketing campaigns, feature development, user feedback
-
-2. **Competition**
-   - Risk: Similar platforms emerge
-   - Mitigation: Unique features, superior user experience, rapid development
-
-3. **Monetization**
-   - Risk: Free service unsustainable
-   - Mitigation: Premium features, enterprise plans, partnerships
-
-## Resource Requirements
-
-### Development Resources
-- **Frontend Developer**: 1 FTE (Full Time Equivalent)
-- **Backend Developer**: 1 FTE
-- **DevOps Engineer**: 0.5 FTE
-- **QA Engineer**: 0.5 FTE
-- **UI/UX Designer**: 0.25 FTE
-
-### Infrastructure Resources
-- **Vercel Pro Plan**: Production hosting
-- **Supabase Pro Plan**: Database and storage
-- **Upstash Pro Plan**: Redis rate limiting
-- **Sentry Pro Plan**: Error tracking
-
-### Budget Requirements
-- **Development**: $10,000/month
-- **Infrastructure**: $500/month
-- **Marketing**: $2,000/month
-- **Total**: $12,500/month
-
-## Timeline and Milestones
-
-### Monthly Milestones
-- **April 2025**: Testing infrastructure complete
-- **May 2025**: Security audit and performance optimization
-- **June 2025**: Production monitoring and deployment
-- **July 2025**: User authentication system
-- **August 2025**: File organization features
-- **September 2025**: Email notifications and collaborative sharing
-- **October 2025**: Analytics dashboard
-- **November 2025**: Public API development
-- **December 2025**: Mobile applications and advanced features
-
-### Quarterly Goals
-- **Q2 2025**: Production ready with comprehensive testing
-- **Q3 2025**: User features and enhanced sharing capabilities
-- **Q4 2025**: Advanced analytics and third-party integrations
-
-### Annual Goals
-- **2025**: Complete platform with mobile applications
-- **Target Users**: 10,000 monthly active users
-- **Target Revenue**: $150,000 annual recurring
-
-## Future Considerations
-
-### Long-term Vision (2026-2027)
-- Enterprise features and multi-tenant architecture
-- Advanced AI features for content analysis
-- Global expansion and localization
-- Strategic partnerships and integrations
-- Monetization strategies and premium features
-
-### Technology Evolution
-- Microservices architecture migration
-- Containerization and orchestration
-- Advanced caching strategies
-- Machine learning integration
-- Enhanced security and compliance features
-
-### Market Expansion
-- Target enterprise market
-- Developer-focused features
-- Educational institutions
-- Government and compliance requirements
-- International market expansion
+| Risk | Mitigation |
+|------|-----------|
+| Database query performance at scale | GIN index + RPC optimization; query analysis |
+| Storage cost growth | Expiration cleanup; storage usage monitoring |
+| XSS in HTML rendering | CSP headers; sandboxed iframe |
+| API key compromise | Hashes only stored; instant soft-revocation |
+| Slow user adoption | Unique CLI + API value proposition; developer-focused features |

@@ -1,237 +1,193 @@
-# Share HTML Platform - Project Overview & PDR
+# DropItX - Project Overview & PDR
 
 ## Project Vision
 
-Share HTML is a modern web platform that enables users to quickly upload HTML files and generate shareable links for easy content distribution. The platform provides a secure, efficient way to share web pages, documentation, prototypes, or any HTML content with others via simple URLs.
+DropItX is a modern web platform that enables users to upload HTML and Markdown files, write content in a built-in editor, and generate shareable links for easy content distribution. The platform supports both browser-based sharing and programmatic access via a REST API and CLI tool.
 
 ## Target Users
 
 ### Primary Users
-- **Web Developers**: Share code snippets, demos, and prototypes
+- **Web Developers**: Share code snippets, demos, prototypes, and publish via CLI
 - **Designers**: Share mockups and design concepts via HTML
-- **Content Creators**: Distribute articles, tutorials, and guides
-- **Teams**: Collaborate on web projects by sharing HTML builds
-- **Educators**: Share teaching materials and student examples
+- **Content Creators**: Distribute articles, tutorials, and guides via Markdown
+- **Teams**: Collaborate on web projects by sharing HTML/Markdown builds
 
 ### Secondary Users
 - **Project Stakeholders**: Review progress via shared HTML builds
 - **Clients**: Preview websites without deployment requirements
-- **QA Teams**: Test HTML content in isolated environments
+- **Educators**: Share teaching materials and student examples
 
 ## Core Features
 
-### Primary Features
-- **File Upload**: Drag-and-drop HTML file upload interface
+### File Sharing
+- **File Upload**: Drag-and-drop HTML and Markdown file upload (up to 50 MB)
 - **Link Generation**: Automatic short, shareable URLs (10-character slugs)
 - **HTML Viewer**: Secure sandboxed iframe rendering with CSP headers
-- **Search Functionality**: Full-text search across all uploaded HTML content
-- **Metadata Display**: Show filename, size, upload date, view count
-- **Automatic Cleanup**: Files expire after 30 days
+- **Markdown Viewer**: GitHub-like prose rendering with shiki syntax highlighting
 
-### Secondary Features
+### Authoring
+- **Markdown Editor**: Split-pane live preview editor powered by CodeMirror 6
+- **Editor Publish**: Publish directly from editor with title, custom slug, and privacy flag
+- **Image Upload**: Inline image drag-and-drop in the editor (PNG/JPG/GIF/WebP, max 5 MB)
+- **Auto-Draft**: Client-side draft persistence with dirty-state unload warning
+
+### Search & Discovery
+- **Search**: Full-text search via Postgres TSVECTOR + GIN index
+- **Favorites**: Authenticated users can bookmark shares
+
+### Developer Access
+- **REST API**: Bearer API key authentication for programmatic document management
+- **API Key Management**: Dashboard UI for generating and revoking API keys
+- **CLI Tool**: `share-html` binary for publish/update/delete/list from the terminal
+
+### Platform
+- **User Auth**: Google and GitHub OAuth via Supabase (PKCE flow)
+- **Dashboard**: Share history, stats (count, total views, storage used)
+- **Profile**: Edit display name and avatar
 - **Theme Support**: Light/dark mode switching
-- **Responsive Design**: Mobile-friendly interface
-- **Loading States**: Proper feedback during operations
-- **Error Handling**: Graceful error messages and fallbacks
 - **Rate Limiting**: 10 requests/minute to prevent abuse
 
 ## Technical Requirements
 
 ### Functional Requirements
-1. **File Upload**: Accept .html and .md files up to 50MB
-2. **Link Generation**: Create unique, readable slugs using nanoid
-3. **HTML Rendering**: Display content in secure iframe with CSP
-4. **Search**: Full-text search with pagination (10 results per page)
-5. **Metadata**: Track filename, file size, MIME type, view count
-6. **Expiration**: Automatic deletion after 30 days
-7. **Security**: Token-based deletion authorization
+1. **File Upload**: Accept `.html`, `.htm`, `.md` files up to 50 MB
+2. **Editor Publish**: Create shares from Markdown content with title, custom slug, `is_private` flag
+3. **Link Generation**: Create unique readable slugs using nanoid
+4. **HTML Rendering**: Display content in sandboxed iframe with CSP
+5. **Markdown Rendering**: Render Markdown with GFM + syntax highlighting
+6. **Image Upload**: Accept PNG/JPG/GIF/WebP up to 5 MB; return public URL for inline use
+7. **Search**: Full-text search with pagination (10 results per page)
+8. **Metadata**: Track filename, file size, MIME type, view count, source
+9. **Expiration**: Automatic deletion after 30 days
+10. **Security**: Token-based deletion, RLS, API key auth (SHA-256 hash stored)
+11. **Privacy**: `is_private` shares hidden from search and public listing for non-owners
+12. **API Keys**: Generate, list, revoke API keys; only SHA-256 hash persisted
 
 ### Non-Functional Requirements
-- **Performance**: Fast load times, efficient search
-- **Security**: Input validation, RLS policies, CSP headers
-- **Reliability**: High availability, error recovery
+- **Performance**: Fast load times, editor renders without SSR
+- **Security**: Input validation, RLS policies, CSP headers, API key hashing
+- **Reliability**: High availability, compensating transactions on upload failure
 - **Scalability**: Handle thousands of concurrent uploads
-- **Maintainability**: Clean code structure, comprehensive testing
+- **Maintainability**: Clean code structure, monorepo with shared types
 
 ## Acceptance Criteria
 
 ### Upload Functionality
-- [ ] Users can drag and drop HTML files onto the upload area
-- [ ] File size validation (max 50MB)
-- [ ] File type validation (.html and .md)
+- [ ] Users can drag and drop HTML/Markdown files onto the upload area
+- [ ] File size validation (max 50 MB)
+- [ ] File type validation (`.html`, `.htm`, `.md`)
 - [ ] Progress feedback during upload
 - [ ] Success notification with generated share link
 - [ ] Error messages for invalid files or size limits
 
+### Editor & Publish
+- [ ] CodeMirror editor with split-pane live preview
+- [ ] Publish creates a share with optional title, custom slug, `is_private` flag
+- [ ] Auto-draft persists to localStorage on change
+- [ ] Dirty-state warning on page unload
+- [ ] Image drag-and-drop into editor inserts Markdown image syntax
+
 ### Share Link Generation
-- [ ] Each upload generates a unique URL slug
+- [ ] Each upload/publish generates a unique URL slug
 - [ ] Links follow format: `https://app.domain/s/{slug}`
-- [ ] Delete tokens generated for security
-- [ ] Links work immediately after upload
-- [ ] 404 page for invalid/expired links
+- [ ] Custom slugs follow `handle/slug` format
+- [ ] Delete tokens generated for file-upload shares
+- [ ] Links work immediately after creation
 
-### HTML Viewer
-- [ ] Content renders in sandboxed iframe
-- [ ] CSP headers prevent script execution
-- [ ] Metadata displayed alongside HTML content
-- [ ] Responsive layout across devices
-- [ ] Loading states during content fetch
+### API Key Auth
+- [ ] Authenticated users can create named API keys from dashboard
+- [ ] Key displayed once at creation; only SHA-256 hash stored
+- [ ] Bearer token requests authenticated via `lib/api-auth.ts`
+- [ ] `revoked_at` soft-delete preserves audit history
+- [ ] `last_used_at` updated asynchronously on each auth
 
-### Search Capability
-- [ ] Full-text search across all HTML content
-- [ ] Pagination (10 results per page)
-- [ ] Search results show filename and snippet
-- [ ] Real-time search as user types
-- [ ] Empty state for no results
+### Privacy
+- [ ] `is_private` shares excluded from search results for non-owners
+- [ ] `is_private` shares return 403 on `/s/[slug]` for non-owners
 
 ### Security & Reliability
-- [ ] All API endpoints protected by rate limiting
-- [ ] Delete tokens prevent unauthorized deletion
-- [ ] Row Level Security on database
-- [ ] Files automatically cleaned after 30 days
-- [ ] Error handling for all failure scenarios
+- [ ] All write endpoints protected by rate limiting
+- [ ] RLS on all database tables
+- [ ] Compensating transaction: delete storage if DB insert fails
+- [ ] API key hashing with Node `crypto` (no external service)
 
 ## Technical Constraints
 
 ### Technology Stack
-- **Frontend**: Next.js 16.2.4, React 19, TypeScript 5
-- **Database**: Supabase (PostgreSQL, Storage)
-- **Styling**: Tailwind CSS 4, shadcn/ui
-- **Infrastructure**: Vercel, Upstash Redis
+- **Frontend**: Next.js 16 (App Router), React 19, TypeScript strict
+- **Editor**: CodeMirror 6, loaded via `next/dynamic` (ssr: false)
+- **Database**: Supabase (PostgreSQL + Storage)
+- **Styling**: Tailwind CSS 4, shadcn/ui, OKLCH color tokens
+- **Cache/Rate-limit**: Upstash Redis
+- **CLI**: `packages/cli/` — TypeScript ESM, binary `share-html`
 
 ### Infrastructure Constraints
 - Deploy on Vercel platform
 - Use Supabase for backend services
 - Rate limiting via Upstash Redis
-- Static file storage via Supabase Storage
+- API key hashing via Node.js built-in `crypto` (no new env vars)
 
 ### Security Constraints
-- Row Level Security (RLS) on all database operations
+- Row Level Security (RLS) on all database tables
 - Content Security Policy for HTML rendering
-- Token-based authorization for sensitive operations
+- API key: only SHA-256 hash stored, prefix stored for display
 - Input validation on all user inputs
 
 ## Project Milestones
 
 ### Phase 1: Core Functionality (Complete)
-- [x] Basic HTML file upload interface
+- [x] HTML file upload interface
 - [x] Share link generation and viewing
 - [x] Database schema and Supabase integration
 - [x] Basic error handling and validation
 
 ### Phase 2: Enhanced Features (Complete)
-- [x] Search functionality with pagination
+- [x] Full-text search with pagination
 - [x] Rate limiting and abuse prevention
 - [x] Theme switching (light/dark mode)
 - [x] Responsive design optimization
+- [x] Markdown file upload and viewer
+- [x] 50 MB upload limit
 
-### Phase 3: Production Readiness (In Progress)
-- [x] Performance optimization
-- [x] Security hardening
-- [ ] Comprehensive testing
-- [ ] Monitoring and analytics
+### Phase 3: Auth, Editor & API (Complete)
+- [x] User authentication (Google/GitHub OAuth)
+- [x] User dashboard with share history and stats
+- [x] Profile settings and avatar management
+- [x] Favorites/bookmark system
+- [x] Markdown editor (CodeMirror) with live split-pane preview
+- [x] Publishing API (`POST /api/publish`)
+- [x] API key management (create, list, revoke)
+- [x] REST API v1 for programmatic document management
+- [x] Inline image upload for editor
+- [x] CLI tool (`packages/cli/`) with `share-html` binary
+- [x] Private shares (`is_private` flag)
+- [x] RLS hardening
 
 ### Phase 4: Future Enhancements
-- [x] User authentication and profiles ✅ COMPLETED
 - [ ] File organization and tagging
 - [ ] Custom expiration dates
 - [ ] Email notifications
 - [ ] Analytics dashboard
+- [ ] Mobile applications
+- [ ] Collaborative features
 
 ## Success Metrics
 
-### User Engagement
-- Average session duration: > 3 minutes
-- Uploads per session: > 1.5
-- Search usage: > 30% of sessions
-- Mobile vs desktop ratio: target 40/60 split
-
-### Technical Performance
-- Page load time: < 2 seconds
-- Search response: < 500ms
-- Upload success rate: > 99%
-- Error rate: < 1%
-
-### Business Metrics
-- Daily active users: 1,000 (target)
-- File uploads per day: 500 (target)
-- Search queries per day: 200 (target)
-- Share links created per day: 300 (target)
+| Category | Metric | Target |
+|----------|--------|--------|
+| Performance | Page load time | < 2 seconds |
+| Performance | Search response | < 500 ms |
+| Reliability | Upload success rate | > 99% |
+| Reliability | Error rate | < 1% |
+| Engagement | Daily active users | 1,000 |
+| Engagement | Uploads per day | 500 |
 
 ## Risk Assessment
 
-### Technical Risks
-- **Rate Limiting**: Upstash Redis service availability
-- **Storage Costs**: Supabase Storage usage scaling
-- **Performance**: Search with large HTML files
-- **Security**: XSS vulnerabilities in HTML rendering
-
-### Mitigation Strategies
-- Monitor Upstash service health
-- Implement storage usage monitoring
-- Optimize search indexing for large files
-- Rigorous CSP policy testing
-
-### Business Risks
-- **Abuse**: Spam or malicious content uploads
-- **Competition**: Similar HTML sharing platforms
-- **Monetization**: Free service sustainability
-
-### Mitigation Strategies
-- Advanced content moderation
-- Unique value proposition development
-- Freemium model consideration
-
-## Future Roadmap
-
-### Short Term (1-2 months)
-- ✅ User authentication system (Google/GitHub OAuth)
-- File organization and folders
-- Custom expiration options
-- Email notifications
-
-### Medium Term (3-6 months)
-- Analytics dashboard
-- API for developers
-- Mobile applications
-- Collaborative features
-
-### Long Term (6-12 months)
-- Premium subscription tiers
-- Enterprise features
-- Integration with development tools
-- Advanced security features
-
-## Project Team
-
-### Current Team Structure
-- **Development**: AI-powered development framework
-- **Design**: Frontend/UI components
-- **Infrastructure**: Vercel + Supabase
-- **Testing**: Automated testing framework
-
-### Roles and Responsibilities
-- **Developer**: Implementation and testing
-- **Designer**: UI/UX and user experience
-- **DevOps**: Deployment and monitoring
-- **QA**: Quality assurance and testing
-
-## Documentation Requirements
-
-### Technical Documentation
-- API documentation for endpoints
-- Database schema documentation
-- Deployment guides and procedures
-- Architecture diagrams and explanations
-
-### User Documentation
-- Getting started guide
-- Feature documentation
-- Troubleshooting guide
-- Best practices for sharing
-
-### Maintenance Documentation
-- Monitoring and alerting setup
-- Backup and recovery procedures
-- Security configuration guide
-- Performance optimization guide
+| Risk | Mitigation |
+|------|-----------|
+| Upstash availability | Monitor service health; graceful degradation allows requests through |
+| Storage cost growth | Storage usage monitoring; expiration cleanup |
+| XSS in HTML rendering | Rigorous CSP policy; sandboxed iframe |
+| API key compromise | Hashes only stored; instant revocation via `revoked_at` |
+| Abuse / spam | Rate limiting; content moderation roadmap |
