@@ -30,8 +30,9 @@ All theme variables in `app/globals.css` using `oklch()`. The v1.0.0 overhaul es
 
 ## Typography
 
-- **Font**: Geist Sans (`--font-geist-sans`), Geist Mono (`--font-geist-mono`)
+- **Font**: Ubuntu (`--font-sans`), Ubuntu Mono (`--font-mono`)
 - Loaded via `next/font/google` in `app/layout.tsx`
+- Weights: 300 (light), 400 (regular), 500 (medium), 700 (bold) for Sans; 400, 700 for Mono
 - Responsive text sizes via Tailwind classes (`text-sm`, `text-lg`, etc.)
 
 ## Component Library

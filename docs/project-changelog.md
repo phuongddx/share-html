@@ -4,6 +4,20 @@ All notable changes to DropItX.
 
 ---
 
+## [v1.3.1] — 2026-04-25
+
+### Changed
+- **Typography**: Replaced Geist Sans + Geist Mono with Ubuntu + Ubuntu Mono across all pages, markdown viewer, and code blocks
+
+---
+
+## [v1.3.0] — 2026-04-25
+
+### Changed
+- **Rebrand**: ShareHTML → DropItX with electric violet identity (OKLCH color tokens, updated all UI components)
+
+---
+
 ## [v1.2.0] — 2026-04-25
 
 ### Added
