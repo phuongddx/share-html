@@ -17,7 +17,7 @@ DropItX is a Next.js 16 (App Router) application for uploading HTML/Markdown fil
 | Rate limiting | Upstash Redis |
 | File upload | `react-dropzone` |
 | Theming | `next-themes` |
-| CLI | `packages/cli/` — TypeScript ESM, binary `share-html` |
+| CLI | `packages/cli/` — TypeScript ESM, binary `dropitx` |
 
 ## File Structure Overview
 
@@ -73,7 +73,7 @@ types/
 packages/cli/
 ├── package.json, tsconfig.json
 └── src/
-    ├── index.ts                       # CLI entry (binary: share-html)
+    ├── index.ts                       # CLI entry (binary: dropitx)
     └── commands/login,publish,update,delete,list,whoami
 
 supabase/
@@ -175,7 +175,7 @@ public/                                # Static assets
 
 ## CLI Tool (`packages/cli/`)
 
-Binary: `share-html`. Config: `~/.share-html/config.json` (mode 0600).
+Binary: `dropitx`. Config: `~/.dropitx/config.json` (mode 0600).
 
 | Command | Description |
 |---------|-------------|

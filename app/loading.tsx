@@ -11,7 +11,7 @@ export default function RootLoading() {
           />
         </div>
         <p className="text-sm font-medium text-muted-foreground">
-          Share HTML
+          DropItX
         </p>
       </div>
     </div>

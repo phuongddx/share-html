@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Share HTML",
-  description: "Drop HTML files, get short shareable links",
+  title: "DropItX",
+  description: "Instant file drops, shareable links.",
 };
 
 export default function RootLayout({
@@ -35,8 +35,8 @@ export default function RootLayout({
         <ThemeProvider>
           <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-sm">
             <div className="flex items-center justify-between h-12 px-4 max-w-7xl mx-auto">
-              <Link href="/" className="text-lg font-bold">
-                Share<span className="text-blue-600">HTML</span>
+              <Link href="/" className="font-mono text-lg font-bold tracking-tight">
+                [x]{" "}<span className="text-violet-600 dark:text-violet-400">dropitx</span>
               </Link>
               <AuthUserMenu />
             </div>

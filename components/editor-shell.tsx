@@ -191,7 +191,7 @@ export function EditorShell() {
           onClick={() => setTab("write")}
           className={`flex-1 py-2 text-center text-sm font-medium transition-colors ${
             tab === "write"
-              ? "border-b-2 border-blue-600 text-foreground"
+              ? "border-b-2 border-violet-600 text-foreground"
               : "text-muted-foreground"
           }`}
         >
@@ -201,7 +201,7 @@ export function EditorShell() {
           onClick={() => setTab("preview")}
           className={`flex-1 py-2 text-center text-sm font-medium transition-colors ${
             tab === "preview"
-              ? "border-b-2 border-blue-600 text-foreground"
+              ? "border-b-2 border-violet-600 text-foreground"
               : "text-muted-foreground"
           }`}
         >

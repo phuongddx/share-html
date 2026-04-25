@@ -33,7 +33,7 @@ function truncate(text: string, max: number): string {
 function getFileExtension(filename: string) {
   const ext = filename.split(".").pop()?.toLowerCase();
   if (ext === "md") return { icon: <FileText className="size-4 text-violet-500" />, label: "MD" };
-  return { icon: <FileText className="size-4 text-blue-500" />, label: "HTML" };
+  return { icon: <FileText className="size-4 text-violet-500" />, label: "HTML" };
 }
 
 function SkeletonCard() {

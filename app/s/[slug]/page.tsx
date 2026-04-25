@@ -118,7 +118,7 @@ export default async function SharePage({ params }: SharePageProps) {
                 {isMarkdown ? (
                   <FileText className="size-5 text-violet-500" />
                 ) : (
-                  <FileCode className="size-5 text-blue-500" />
+                  <FileCode className="size-5 text-violet-500" />
                 )}
               </div>
               <CardTitle className="truncate text-lg">{share.filename}</CardTitle>

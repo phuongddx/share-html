@@ -32,8 +32,8 @@ export default async function DashboardLayout({
       {/* Sidebar */}
       <aside className="hidden md:flex w-56 flex-col border-r bg-card">
         <div className="p-4 border-b">
-          <Link href="/" className="text-lg font-bold">
-            Share<span className="text-blue-600">HTML</span>
+          <Link href="/" className="font-mono text-lg font-bold tracking-tight">
+            [x]{" "}<span className="text-violet-600 dark:text-violet-400">dropitx</span>
           </Link>
         </div>
 
@@ -60,7 +60,7 @@ export default async function DashboardLayout({
                 referrerPolicy="no-referrer"
               />
             ) : (
-              <div className="size-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
+              <div className="size-8 rounded-full bg-violet-600 flex items-center justify-center text-white text-xs font-bold">
                 {(profile?.display_name || user.email || "U")[0].toUpperCase()}
               </div>
             )}

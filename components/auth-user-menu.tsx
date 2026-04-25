@@ -90,7 +90,7 @@ export function AuthUserMenu() {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 rounded-full p-0.5 hover:ring-2 ring-blue-500/30 transition"
+        className="flex items-center gap-2 rounded-full p-0.5 hover:ring-2 ring-violet-500/30 transition"
       >
         {profile?.avatar_url ? (
           <img
@@ -100,7 +100,7 @@ export function AuthUserMenu() {
             referrerPolicy="no-referrer"
           />
         ) : (
-          <div className="size-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold">
+          <div className="size-8 rounded-full bg-violet-600 flex items-center justify-center text-white text-sm font-bold">
             {initial}
           </div>
         )}

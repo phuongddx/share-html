@@ -125,15 +125,15 @@ The CLI lives in `packages/cli/` and is a separate TypeScript ESM package.
 cd packages/cli
 npm install
 npm run build          # compiles to dist/
-npm link               # makes `share-html` available globally
+npm link               # makes `dropitx` available globally
 
 # Configure with your API key (generated from /dashboard)
-share-html login
-share-html publish my-file.md -t "My Doc"
-share-html list
+dropitx login
+dropitx publish my-file.md -t "My Doc"
+dropitx list
 ```
 
-Config is stored at `~/.share-html/config.json` (mode 0600). Never commit this file.
+Config is stored at `~/.dropitx/config.json` (mode 0600). Never commit this file.
 
 ## Vercel Deployment
 

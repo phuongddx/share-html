@@ -92,7 +92,7 @@ export function ProfileForm({
                 className="size-16 rounded-full"
               />
             ) : (
-              <div className="size-16 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-bold">
+              <div className="size-16 rounded-full bg-violet-600 flex items-center justify-center text-white text-xl font-bold">
                 {initial}
               </div>
             )}

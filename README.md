@@ -12,7 +12,7 @@ Drop HTML and Markdown files, write in the built-in editor, and get short sharea
 - **Search**: Full-text search across all content
 - **Auth**: Google and GitHub OAuth; user dashboard, profile, favorites
 - **API**: REST API v1 for programmatic document management (Bearer API key)
-- **CLI**: `share-html` binary for publish/update/delete from the terminal
+- **CLI**: `dropitx` binary for publish/update/delete from the terminal
 - **Security**: Sandboxed iframe viewing with CSP, rate limiting, RLS on all tables
 - **Themes**: Light/dark mode
 - **Auto-expire**: Shares expire after 30 days
@@ -23,9 +23,9 @@ Drop HTML and Markdown files, write in the built-in editor, and get short sharea
 - **TypeScript** (strict mode)
 - **Supabase** (PostgreSQL, Storage, Auth — Google/GitHub OAuth)
 - **CodeMirror 6** (Markdown editor, SSR-disabled)
-- **Tailwind CSS 4** + shadcn/ui (OKLCH blue accent tokens)
+- **Tailwind CSS 4** + shadcn/ui (OKLCH violet accent tokens)
 - **Upstash Redis** (rate limiting)
-- **CLI**: `packages/cli/` — TypeScript ESM, binary `share-html`
+- **CLI**: `packages/cli/` — TypeScript ESM, binary `dropitx`
 
 ## Getting Started
 
@@ -76,22 +76,22 @@ Manual alternative: run `supabase/schema.sql` then all files in `supabase/migrat
 cd packages/cli && npm install && npm run build && npm link
 
 # Authenticate (generate an API key at /dashboard first)
-share-html login
+dropitx login
 
 # Publish a Markdown file
-share-html publish README.md -t "My Doc"
+dropitx publish README.md -t "My Doc"
 
 # Publish as private
-share-html publish notes.md -t "Private Notes" -p
+dropitx publish notes.md -t "Private Notes" -p
 
 # List your documents
-share-html list
+dropitx list
 
 # Update content
-share-html update abc123 updated.md
+dropitx update abc123 updated.md
 
 # Delete
-share-html delete abc123
+dropitx delete abc123
 ```
 
 ## API Reference
@@ -138,7 +138,7 @@ lib/editor-extensions/# CodeMirror slash commands, image drop
 utils/supabase/       # Supabase client factories (browser, server, admin)
 types/                # TypeScript interfaces
 supabase/             # Schema and migrations
-packages/cli/         # CLI tool (share-html binary)
+packages/cli/         # CLI tool (dropitx binary)
 public/               # Static assets
 docs/                 # Project documentation
 ```

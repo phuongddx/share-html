@@ -44,10 +44,10 @@ DropItX is a Next.js 16 application (App Router) deployed on Vercel with Supabas
 
   CLI (packages/cli/)
   ──────────────────
-  share-html publish <file> [-P password]  →  POST /api/v1/documents
-  share-html list                          →  GET  /api/v1/documents
-  share-html delete <slug>                 →  DELETE /api/v1/documents/[slug]
-  Config: ~/.share-html/config.json (mode 0600)
+  dropitx publish <file> [-P password]  →  POST /api/v1/documents
+  dropitx list                          →  GET  /api/v1/documents
+  dropitx delete <slug>                 →  DELETE /api/v1/documents/[slug]
+  Config: ~/.dropitx/config.json (mode 0600)
 ```
 
 ## Component Hierarchy
@@ -184,8 +184,8 @@ User drags image into EditorPane
 
 ### API Publish Flow
 ```
-CLI: share-html publish file.md [-P password]
-  → Read ~/.share-html/config.json for API key
+CLI: dropitx publish file.md [-P password]
+  → Read ~/.dropitx/config.json for API key
   → POST /api/v1/documents { content, title, slug, is_private, password? }
     → lib/api-auth.ts: hash Bearer token, lookup api_keys
     → password present → bcryptjs.hash(password, 10) stored in shares.password_hash

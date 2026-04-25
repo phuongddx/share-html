@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { EditorShell } from "@/components/editor-shell";
 
 export const metadata: Metadata = {
-  title: "Markdown Editor — Share HTML",
+  title: "Markdown Editor — DropItX",
   description: "Write and preview markdown with a powerful code editor",
 };
 

@@ -51,7 +51,7 @@ export function DashboardShareCard({ share }: { share: ShareWithPasswordFlag }) 
             {isMarkdown ? (
               <FileText className="size-5 text-violet-500" />
             ) : (
-              <FileCode className="size-5 text-blue-500" />
+              <FileCode className="size-5 text-violet-500" />
             )}
           </div>
 
