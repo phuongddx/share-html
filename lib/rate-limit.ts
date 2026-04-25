@@ -1,44 +1,26 @@
 /**
- * Rate limiting via Upstash Redis.
+ * Rate limiting via Supabase Postgres.
  * Upload: 10 requests per minute per IP (sliding window).
  * Password attempts: 5 per 10 minutes per IP+slug (fail-closed).
  */
 
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
+import { createAdminClient } from "@/utils/supabase/server";
 
-let ratelimit: Ratelimit | null = null;
-let passwordRatelimit: Ratelimit | null = null;
+type RateLimitRow = { success: boolean; remaining: number; reset_at: string };
 
-function getRatelimit(): Ratelimit {
-  if (!ratelimit) {
-    const url = process.env.UPSTASH_REDIS_REST_URL;
-    const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-    if (!url || !token || url === "your-upstash-url") {
-      throw new Error("Upstash Redis not configured");
-    }
-    ratelimit = new Ratelimit({
-      redis: new Redis({ url, token }),
-      limiter: Ratelimit.slidingWindow(10, "60 s"),
-    });
-  }
-  return ratelimit;
-}
-
-function getPasswordRatelimit(): Ratelimit {
-  if (!passwordRatelimit) {
-    const url = process.env.UPSTASH_REDIS_REST_URL;
-    const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-    if (!url || !token || url === "your-upstash-url") {
-      throw new Error("Upstash Redis not configured");
-    }
-    passwordRatelimit = new Ratelimit({
-      redis: new Redis({ url, token }),
-      limiter: Ratelimit.slidingWindow(5, "600 s"),
-      prefix: "pwd",
-    });
-  }
-  return passwordRatelimit;
+async function callRateLimit(
+  key: string,
+  maxAttempts: number,
+  windowSecs: number,
+): Promise<RateLimitRow> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc("check_rate_limit", {
+    p_key: key,
+    p_max_attempts: maxAttempts,
+    p_window_secs: windowSecs,
+  });
+  if (error) throw error;
+  return (data as RateLimitRow[])[0];
 }
 
 export async function checkRateLimit(ip: string): Promise<{
@@ -48,11 +30,15 @@ export async function checkRateLimit(ip: string): Promise<{
   reset: number;
 }> {
   try {
-    const rl = getRatelimit();
-    const { success, limit, remaining, reset } = await rl.limit(ip);
-    return { success, limit, remaining, reset };
+    const row = await callRateLimit(`upload:${ip}`, 10, 60);
+    return {
+      success: row.success,
+      limit: 10,
+      remaining: row.remaining,
+      reset: new Date(row.reset_at).getTime(),
+    };
   } catch {
-    // Skip rate limiting when Upstash is not configured (dev/build)
+    // Fail-open when DB is unavailable (dev/build)
     return { success: true, limit: 10, remaining: 10, reset: Date.now() };
   }
 }
@@ -62,11 +48,14 @@ export async function checkPasswordRateLimit(
   slug: string,
 ): Promise<{ success: boolean; remaining: number; reset: number }> {
   try {
-    const rl = getPasswordRatelimit();
-    const { success, remaining, reset } = await rl.limit(`${ip}:${slug}`);
-    return { success, remaining, reset };
+    const row = await callRateLimit(`pwd:${ip}:${slug}`, 5, 600);
+    return {
+      success: row.success,
+      remaining: row.remaining,
+      reset: new Date(row.reset_at).getTime(),
+    };
   } catch {
-    // Fail-closed: deny access when rate limiter is unavailable to prevent brute force
+    // Fail-closed: deny access when DB is unavailable to prevent brute force
     return { success: false, remaining: 0, reset: Date.now() + 600_000 };
   }
 }

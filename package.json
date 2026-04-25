@@ -20,8 +20,7 @@
     "@codemirror/view": "^6.41.1",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.0",
-    "@upstash/ratelimit": "^2.0.8",
-    "@upstash/redis": "^1.37.0",
+    "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.8.0",
@@ -41,6 +40,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
