@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BookmarkToggle } from "@/components/bookmark-toggle";
+import { ShareViewedTracker } from "@/components/share-viewed-tracker";
 import { FileCode, FileText, Eye, Clock, Calendar } from "lucide-react";
 import type { Share } from "@/types/share";
 
@@ -109,6 +110,7 @@ export default async function SharePage({ params }: SharePageProps) {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 md:p-6 max-w-5xl mx-auto w-full animate-fade-in">
+      <ShareViewedTracker />
       {/* Metadata header */}
       <Card>
         <CardHeader className="gap-3">

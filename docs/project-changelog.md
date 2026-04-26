@@ -2,6 +2,31 @@
 
 All notable changes to DropItX.
 
+## [v1.3.2] — 2026-04-26
+
+### Added
+- **HeaderBar compound component system**:
+  - `HeaderBar`: Main orchestrator managing responsive state and mobile drawer
+  - `HeaderNav`: Desktop navigation with menu toggle functionality
+  - `HeaderMobileDrawer`: Slide-out mobile navigation with backdrop and close functionality
+- **Navigation utilities**: `lib/nav-links.ts` (centralized links), `lib/use-auth-user.ts` (auth state hook)
+- **Layout optimization**: Removed duplicate logo and profile from dashboard sidebar
+
+### Changed
+- **Header standardization**: Replaced inline header in `app/layout.tsx` with `HeaderBar` compound component
+- **Dashboard layout**: Simplified sidebar by moving logo and profile to header component
+
+### Components Architecture
+New compound pattern improves:
+- **Reusability**: Single header across all layouts
+- **Maintainability**: Centralized header logic and styling
+- **Responsive design**: Proper mobile/desktop state management
+- **Performance**: Reduced component duplication
+
+---
+
+## [v1.3.1] — 2026-04-25
+
 ---
 
 ## [v1.3.1] — 2026-04-25

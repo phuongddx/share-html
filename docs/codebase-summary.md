@@ -57,11 +57,14 @@ components/
 ├── dashboard-share-card.tsx, bookmark-toggle.tsx
 ├── api-key-manager.tsx, profile-form.tsx
 ├── auth-user-menu.tsx, home-page.tsx, theme-provider.tsx
+├── header-bar.tsx, header-nav.tsx, header-mobile-drawer.tsx
 
 lib/
 ├── utils.ts, nanoid.ts, extract-text.ts, rate-limit.ts
 ├── api-auth.ts                        # API key hash + lookup
 ├── shiki-highlighter.ts
+├── nav-links.ts                       # Navigation links configuration
+├── use-auth-user.ts                   # Authentication state hook
 └── editor-extensions/                 # CodeMirror slash commands, image drop
 
 utils/supabase/
@@ -146,6 +149,11 @@ public/                                # Static assets
 - **BookmarkToggle**: Add/remove favorites
 - **ProfileForm**: Edit display name and avatar
 - **AuthUserMenu**: Header dropdown (profile, logout)
+
+### Header Components
+- **HeaderBar**: Main header orchestrator, manages responsive state
+- **HeaderNav**: Desktop navigation links with responsive menu toggle
+- **HeaderMobileDrawer**: Slide-out mobile navigation menu
 
 ### Core UI
 - **SearchBar**: Debounced (300 ms) input → URL params navigation

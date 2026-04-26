@@ -64,6 +64,11 @@ All theme variables in `app/globals.css` using `oklch()`. The v1.0.0 overhaul es
 - **ProfileForm**: Display name + avatar URL inputs with save feedback
 - **AuthUserMenu**: Header dropdown; avatar or initials fallback; profile + logout links
 
+### Header Components
+- **HeaderBar**: Main header orchestrator; manages mobile/desktop state and mobile drawer
+- **HeaderNav**: Desktop navigation links; responsive menu toggle for mobile
+- **HeaderMobileDrawer**: Slide-out mobile navigation with backdrop and close functionality
+
 ### Search / Navigation
 - **SearchBar**: Debounced (300 ms) input → URL params navigation
 - **SearchResults**: Result cards with relative time, skeleton loading, empty state

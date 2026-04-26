@@ -56,6 +56,9 @@ DropItX is a Next.js 16 application (App Router) deployed on Vercel with Supabas
 RootLayout (app/layout.tsx)
 ├── ThemeProvider
 ├── Toaster (sonner)
+└── HeaderBar (compound component system)
+    ├── HeaderNav (desktop navigation)
+    └── HeaderMobileDrawer (mobile navigation)
 └── Routes
     ├── / (HomePage)
     │   ├── SearchBar
@@ -80,7 +83,8 @@ RootLayout (app/layout.tsx)
     │   ├── GitHub OAuth button
     │   └── Contextual message ("Sign in to view shared content" when ?next=/s/*)
     ├── /dashboard
-    │   ├── layout.tsx (sidebar nav)
+    │   ├── HeaderBar (compound component with optimized sidebar)
+    │   ├── layout.tsx (sidebar nav - simplified, no duplicate logo/profile)
     │   ├── page.tsx (share list + stats)
     │   │   ├── DashboardShareCard (with lock/unlock password toggle)
     │   │   │   └── SharePasswordForm

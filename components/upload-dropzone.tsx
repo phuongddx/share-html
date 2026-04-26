@@ -5,6 +5,7 @@ import { useDropzone } from "react-dropzone";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Upload, FileUp, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { trackEvent, AnalyticsEvent } from "@/lib/analytics";
 
 export interface UploadResult {
   slug: string;
@@ -49,6 +50,11 @@ export function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps) {
         }
 
         setState("success");
+        const ext = file.name.split(".").pop()?.toLowerCase() as "html" | "htm" | "md";
+        trackEvent(AnalyticsEvent.DOCUMENT_UPLOADED, {
+          type: ext === "md" ? "md" : "html",
+          size_kb: Math.round(file.size / 1024),
+        });
         onUploadSuccess(data as UploadResult);
       } catch {
         setState("error");
