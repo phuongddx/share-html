@@ -1,27 +1,26 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { SearchBar } from "@/components/search-bar";
 import { SearchResults } from "@/components/search-results";
 import type { SearchResult } from "@/types/share";
 
-interface SearchPageProps {
-  searchParams: Promise<{ q?: string }>;
-}
+export default function SearchPage() {
+  const searchParams = useSearchParams();
+  const queryParam = searchParams.get("q") ?? "";
+  const trimmedParam = queryParam.trim();
 
-export default function SearchPage({ searchParams }: SearchPageProps) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(trimmedParam);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
-  // Resolve searchParams promise on mount
+  // Sync query from URL search params (primitive dependency)
   useEffect(() => {
-    searchParams.then((params) => {
-      const q = (params.q ?? "").trim();
-      setQuery(q);
-    });
-  }, [searchParams]);
+    setQuery(trimmedParam);
+  }, [trimmedParam]);
 
   const performSearch = useCallback(async (term: string) => {
     if (term.length < 2) {
@@ -29,12 +28,17 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
       return;
     }
 
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setIsLoading(true);
     setError(null);
 
     try {
       const res = await fetch(
         `/api/search?q=${encodeURIComponent(term)}`,
+        { signal: controller.signal },
       );
       if (!res.ok) {
         const body = await res.json().catch(() => null);
@@ -44,11 +48,12 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
       }
       const data = await res.json();
       setResults(data.results ?? []);
-    } catch {
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
       setError("Network error. Please try again.");
       setResults([]);
     } finally {
-      setIsLoading(false);
+      if (abortRef.current === controller) setIsLoading(false);
     }
   }, []);
 
@@ -61,6 +66,11 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
     }
     performSearch(query);
   }, [query, performSearch]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => abortRef.current?.abort();
+  }, []);
 
   return (
     <div className="flex flex-1 flex-col items-center bg-background">
