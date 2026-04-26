@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-04-26
+
+### Added
+
+- HeaderBar compound component system:
+  - HeaderBar orchestrator with responsive state management
+  - HeaderNav desktop navigation with menu toggle
+  - HeaderMobileDrawer slide-out menu with backdrop
+- Navigation links configuration utility (`nav-links.ts`)
+- Authentication user hook (`use-auth-user.ts`)
+- Updated main layout to use HeaderBar component
+- Optimized dashboard sidebar by removing duplicate logo and profile elements
+
+### Changed
+
+- Replaced inline header in app/layout.tsx with HeaderBar compound component
+- Simplified dashboard sidebar layout by moving logo and profile to header
+
 ## [1.3.0] - 2026-04-25
 
 ### Changed

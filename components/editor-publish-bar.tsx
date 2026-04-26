@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/utils/supabase/client";
 import { Check, Copy, Loader2, Lock, Unlock } from "lucide-react";
 import { toast } from "sonner";
+import { trackEvent, AnalyticsEvent } from "@/lib/analytics";
 
 interface EditorPublishBarProps {
   content: string;
@@ -67,6 +68,7 @@ export function EditorPublishBar({
       const data = await res.json();
       setPublishedUrl(data.url);
       toast.success("Published successfully!");
+      trackEvent(AnalyticsEvent.CONTENT_PUBLISHED, { is_private: isPrivate });
       onPublished?.(data.slug, data.url);
       onClearDraft?.();
     } catch (err) {

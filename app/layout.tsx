@@ -3,6 +3,7 @@ import { Ubuntu, Ubuntu_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { HeaderBar } from "@/components/header-bar";
+import { VercelAnalytics } from "@/components/vercel-analytics";
 import "./globals.css";
 
 const ubuntuSans = Ubuntu({
@@ -38,6 +39,7 @@ export default function RootLayout({
           {children}
           <Toaster />
         </ThemeProvider>
+        <VercelAnalytics />
       </body>
     </html>
   );
