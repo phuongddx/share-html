@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid team slug (2-50 chars, lowercase alphanumeric + hyphens)" }, { status: 400 });
     }
 
-    // Use admin client to bypass RLS — publishable key gets 403 from Supabase REST API
+    // Use admin client (bypasses RLS) for server-side writes
     const admin = createAdminClient();
     const { data: team, error } = await admin
       .from("teams")
@@ -77,14 +77,14 @@ export async function POST(request: NextRequest) {
       if (error.code === "23505") {
         return NextResponse.json({ error: "Team slug already taken" }, { status: 409 });
       }
-      console.error("Team creation failed:", JSON.stringify(error, null, 2));
-      return NextResponse.json({ error: "Failed to create team", detail: error.message }, { status: 500 });
+      console.error("Team creation failed:", error.message);
+      return NextResponse.json({ error: "Failed to create team" }, { status: 500 });
     }
 
     // Owner membership is auto-created by the add_team_owner DB trigger
     return NextResponse.json({ team, role: "owner" }, { status: 201 });
   } catch (err) {
-    console.error("POST /api/dashboard/teams error:", err instanceof Error ? err.stack : err);
+    console.error("POST /api/dashboard/teams error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
