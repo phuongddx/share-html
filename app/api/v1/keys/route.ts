@@ -1,6 +1,8 @@
 /**
  * POST /api/v1/keys — Generate a new API key (cookie auth, NOT API key auth).
  * GET  /api/v1/keys — List the authenticated user's API keys (cookie auth).
+ *
+ * Team support: POST accepts optional team_id to create a team-scoped API key.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -8,6 +10,8 @@ import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/utils/supabase/server";
 import { generateApiKey } from "@/lib/api-key";
+import { hasMinRole } from "@/lib/team-utils";
+import type { TeamRole } from "@/types/team";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name } = body as { name?: string };
+    const { name, team_id } = body as { name?: string; team_id?: string };
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       return NextResponse.json(
@@ -31,14 +35,40 @@ export async function POST(request: NextRequest) {
     }
 
     const trimmedName = name.trim().slice(0, 100);
-    const { key, hash, prefix } = generateApiKey();
-
     const supabase = createAdminClient();
+
+    // Determine prefix: team key uses "sht", personal uses "shk"
+    let prefix: "shk" | "sht" = "shk";
+    let keyTeamId: string | null = null;
+
+    if (team_id) {
+      // Validate user is editor+ in the team
+      const { data: member } = await supabase
+        .from("team_members")
+        .select("role")
+        .eq("team_id", team_id)
+        .eq("user_id", user.id)
+        .single();
+
+      if (!member || !hasMinRole(member.role as TeamRole, "editor")) {
+        return NextResponse.json(
+          { error: "Insufficient permissions to create team API key" },
+          { status: 403 },
+        );
+      }
+
+      prefix = "sht";
+      keyTeamId = team_id;
+    }
+
+    const { key, hash, prefix: keyPrefix } = generateApiKey(prefix);
+
     const { error } = await supabase.from("api_keys").insert({
       user_id: user.id,
       name: trimmedName,
       key_hash: hash,
-      key_prefix: prefix,
+      key_prefix: keyPrefix,
+      team_id: keyTeamId,
     });
 
     if (error) {
@@ -52,8 +82,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         key,
-        prefix,
+        prefix: keyPrefix,
         name: trimmedName,
+        team_id: keyTeamId,
         created_at: new Date().toISOString(),
       },
       { status: 201 },
@@ -77,7 +108,7 @@ export async function GET() {
     const supabase = createAdminClient();
     const { data, error } = await supabase
       .from("api_keys")
-      .select("id, name, key_prefix, last_used_at, created_at")
+      .select("id, name, key_prefix, team_id, last_used_at, created_at")
       .eq("user_id", user.id)
       .is("revoked_at", null)
       .order("created_at", { ascending: false });

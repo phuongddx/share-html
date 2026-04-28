@@ -3,7 +3,8 @@
  * PATCH  /api/v1/documents/[slug] — Update document content.
  * DELETE /api/v1/documents/[slug] — Delete document + storage object.
  *
- * All endpoints require API key authentication. Only the owner can access.
+ * All endpoints require API key authentication.
+ * Access: owner (user_id match) OR team member via team_shares.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -12,16 +13,29 @@ import { authenticateApiKey } from "@/lib/api-auth";
 import { extractTextFromMarkdown } from "@/lib/extract-text";
 import { hashPassword } from "@/lib/password";
 import { buildShareUrl } from "@/lib/api-utils";
+import { hasMinRole } from "@/lib/team-utils";
 import type { Share } from "@/types/share";
+import type { TeamRole } from "@/types/team";
 
 const STORAGE_BUCKET = "html-files";
 const MAX_CONTENT_SIZE = 1024 * 1024; // 1 MB
 
 type ShareOwnerResult =
   | { ok: false; error: NextResponse }
-  | { ok: true; share: Share; supabase: ReturnType<typeof createAdminClient> };
+  | {
+      ok: true;
+      share: Share;
+      supabase: ReturnType<typeof createAdminClient>;
+      /** If accessed via team, the user's role in that team */
+      teamRole: string | null;
+    };
 
-/** Fetch share row and verify ownership via API key auth. */
+/**
+ * Fetch share row and verify access via API key auth.
+ * Access is granted if:
+ * - User is the share owner (user_id match), OR
+ * - Share belongs to a team the user is a member of (via team_shares + team_members)
+ */
 async function getOwnedShare(
   request: NextRequest,
   slug: string,
@@ -37,10 +51,34 @@ async function getOwnedShare(
     return { ok: false, error: NextResponse.json({ error: "Document not found" }, { status: 404 }) };
   }
   const typed = share as unknown as Share;
-  if (typed.user_id !== auth.userId) {
-    return { ok: false, error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
+
+  // Team-scoped keys can only access shares via team_shares, never personal shares
+  if (!auth.teamId && typed.user_id === auth.userId) {
+    return { ok: true, share: typed, supabase, teamRole: null };
   }
-  return { ok: true, share: typed, supabase };
+
+  // Check team access: is this share in a team the user belongs to?
+  const { data: teamShare } = await supabase
+    .from("team_shares")
+    .select("team_id, team_members!inner(role)")
+    .eq("share_id", typed.id)
+    .eq("team_members.user_id", auth.userId)
+    .limit(1);
+
+  // The join returns team_members as an array — extract the role
+  interface TeamShareWithMember {
+    team_id: string;
+    team_members: { role: string } | { role: string }[] | null;
+  }
+
+  const teamAccess = teamShare as TeamShareWithMember[] | null;
+  if (teamAccess && teamAccess.length > 0) {
+    const memberData = teamAccess[0].team_members;
+    const role = Array.isArray(memberData) ? memberData[0]?.role : (memberData as { role: string } | null)?.role;
+    return { ok: true, share: typed, supabase, teamRole: role ?? "viewer" };
+  }
+
+  return { ok: false, error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
 }
 
 export async function GET(
@@ -71,7 +109,12 @@ export async function PATCH(
     const { slug } = await params;
     const result = await getOwnedShare(request, slug);
     if (!result.ok) return result.error;
-    const { share, supabase } = result;
+    const { share, supabase, teamRole } = result;
+
+    // Team members with viewer role cannot update shares
+    if (teamRole && !hasMinRole(teamRole as TeamRole, "editor")) {
+      return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 });
+    }
 
     const body = await request.json();
     const { content, filename, title, is_private, password } = body as {
@@ -139,7 +182,12 @@ export async function DELETE(
     const { slug } = await params;
     const result = await getOwnedShare(request, slug);
     if (!result.ok) return result.error;
-    const { share, supabase } = result;
+    const { share, supabase, teamRole } = result;
+
+    // Only owners can delete team shares; personal owners can delete their own
+    if (teamRole && teamRole !== "owner") {
+      return NextResponse.json({ error: "Only team owners can delete team shares" }, { status: 403 });
+    }
 
     const { error: storageError } = await supabase.storage
       .from(STORAGE_BUCKET).remove([share.storage_path]);

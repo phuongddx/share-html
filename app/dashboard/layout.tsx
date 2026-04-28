@@ -2,7 +2,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import Link from "next/link";
-import { FileText, Heart, User } from "lucide-react";
+import { FileText, Heart, User, BarChart3 } from "lucide-react";
+import { TeamNav, TeamNavMobile } from "@/components/team-nav";
 
 export default async function DashboardLayout({
   children,
@@ -19,9 +20,22 @@ export default async function DashboardLayout({
 
   const navItems = [
     { href: "/dashboard", label: "History", icon: FileText },
+    { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
     { href: "/dashboard/favorites", label: "Favorites", icon: Heart },
     { href: "/dashboard/profile", label: "Profile", icon: User },
   ];
+
+  // Fetch user's teams for sidebar nav
+  const { data: memberships } = await supabase
+    .from("team_members")
+    .select("teams(slug, name)")
+    .eq("user_id", user.id);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const teams = ((memberships ?? []) as any[]).map((m) => {
+    const t = Array.isArray(m.teams) ? m.teams[0] : m.teams;
+    return { slug: t?.slug ?? "", name: t?.name ?? "" };
+  });
 
   return (
     <div className="flex min-h-screen">
@@ -38,6 +52,14 @@ export default async function DashboardLayout({
               {label}
             </Link>
           ))}
+
+          {/* Teams section */}
+          <div className="pt-3 mt-3 border-t">
+            <p className="px-3 mb-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Teams
+            </p>
+            <TeamNav teams={teams} />
+          </div>
         </div>
       </aside>
 
@@ -54,6 +76,7 @@ export default async function DashboardLayout({
               {label}
             </Link>
           ))}
+          <TeamNavMobile />
         </div>
       </div>
 

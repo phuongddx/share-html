@@ -1,10 +1,13 @@
 import { notFound, redirect } from "next/navigation";
-import { cookies } from "next/headers";
+import type { Metadata } from "next";
+import { cookies, headers } from "next/headers";
 import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { hasValidAccessCookie } from "@/lib/share-access-cookie";
+import { sha256, generateTrackingToken } from "@/lib/analytics-track";
 import { PasswordGate } from "@/components/password-gate";
 import { HtmlViewer } from "@/components/html-viewer";
 import { MarkdownViewerWrapper } from "@/components/markdown-viewer-wrapper";
+import { EmbedSnippet } from "@/components/embed-snippet";
 import {
   Card,
   CardContent,
@@ -15,11 +18,72 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { BookmarkToggle } from "@/components/bookmark-toggle";
 import { ShareViewedTracker } from "@/components/share-viewed-tracker";
+import { ShareAnalyticsTracker } from "@/components/share-analytics-tracker";
 import { FileCode, FileText, Eye, Clock, Calendar } from "lucide-react";
 import type { Share } from "@/types/share";
 
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://dropitx.com";
+
 interface SharePageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: SharePageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const adminClient = createAdminClient();
+
+  const { data: share } = await adminClient
+    .from("shares")
+    .select("id, slug, filename, title, view_count, created_at, is_private, password_hash")
+    .eq("slug", slug)
+    .single<Share>();
+
+  if (!share) return { title: "Not Found" };
+
+  // Red Team Fix: 5 — Don't leak OG tags for private/password-protected shares
+  if (share.is_private || !!share.password_hash) {
+    return {
+      title: "Protected DropItX Document",
+      description: "This content requires authentication to view",
+      openGraph: {
+        title: "Protected DropItX Document",
+        description: "This content requires authentication to view",
+        siteName: "DropItX",
+        images: [{ url: `${SITE_URL}/og-card-default.png`, width: 1200, height: 630 }],
+        type: "article",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: "Protected DropItX Document",
+        description: "This content requires authentication to view",
+        images: [`${SITE_URL}/og-card-default.png`],
+      },
+    };
+  }
+
+  const title = share.title ?? share.filename;
+  const description = `Shared via DropItX — ${share.view_count} views`;
+  const ogImageUrl = `${SITE_URL}/api/og-image/${share.slug}`;
+  const shareUrl = `${SITE_URL}/s/${share.slug}`;
+
+  return {
+    title: `${title} — DropItX`,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: shareUrl,
+      siteName: "DropItX",
+      images: [{ url: ogImageUrl, width: 1200, height: 630 }],
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImageUrl],
+    },
+  };
 }
 
 function formatExpiresIn(expiresAt: string): string {
@@ -93,11 +157,42 @@ export default async function SharePage({ params }: SharePageProps) {
   }
   // --- END ACCESS GATE ---
 
-  // Increment view count only after successful access
-  const { data: newCount } = await adminClient.rpc("increment_view_count", {
-    share_slug: slug,
-  });
-  const viewCount = typeof newCount === "number" ? newCount : share.view_count + 1;
+  // Record view + increment count via combined RPC (server-side only)
+  const reqHeaders = await headers();
+  const ip =
+    reqHeaders.get("cf-connecting-ip") ??
+    reqHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    "";
+  const country =
+    reqHeaders.get("cf-ipcountry") ??
+    reqHeaders.get("x-vercel-ip-country") ??
+    null;
+  const ua = reqHeaders.get("user-agent") ?? "";
+  const visitorHash = await sha256(`${ip}:${ua}`);
+
+  let trackingToken = "";
+  let viewCount = share.view_count + 1;
+
+  try {
+    const { data: viewResult } = await adminClient.rpc("record_and_increment_share_view", {
+      p_share_slug: slug,
+      p_visitor_hash: visitorHash,
+      p_referrer: null,
+      p_referrer_source: "direct",
+      p_country_code: country,
+    });
+    const row = (viewResult as Array<{ tracking_token: string; is_unique: boolean }>)?.[0];
+    if (row?.tracking_token) {
+      trackingToken = await generateTrackingToken(share.id, row.tracking_token);
+    }
+    viewCount = share.view_count + 1; // optimistic; actual value already incremented in DB
+  } catch {
+    // Analytics must never block viewing — fallback to old increment method
+    const { data: newCount } = await adminClient.rpc("increment_view_count", {
+      share_slug: slug,
+    });
+    viewCount = typeof newCount === "number" ? newCount : share.view_count + 1;
+  }
 
   const { data: fileData, error: storageError } = await adminClient.storage
     .from("html-files")
@@ -111,6 +206,7 @@ export default async function SharePage({ params }: SharePageProps) {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 md:p-6 max-w-5xl mx-auto w-full animate-fade-in">
       <ShareViewedTracker />
+      <ShareAnalyticsTracker shareId={share.id} trackingToken={trackingToken} />
       {/* Metadata header */}
       <Card>
         <CardHeader className="gap-3">
@@ -151,6 +247,12 @@ export default async function SharePage({ params }: SharePageProps) {
               </span>
             )}
           </CardDescription>
+          {/* Embed snippet — only for non-restricted public shares */}
+          {!share.is_private && !share.password_hash && (
+            <div className="mt-3">
+              <EmbedSnippet slug={share.slug} />
+            </div>
+          )}
         </CardHeader>
       </Card>
 

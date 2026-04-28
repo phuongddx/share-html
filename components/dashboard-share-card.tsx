@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SharePasswordForm } from "@/components/share-password-form";
-import { Eye, Clock, Trash2, ExternalLink, FileCode, FileText, Lock, LockOpen } from "lucide-react";
+import { Eye, Clock, Trash2, ExternalLink, FileCode, FileText, Lock, LockOpen, BarChart3 } from "lucide-react";
 import type { ShareWithPasswordFlag } from "@/app/dashboard/page";
 
 function formatDate(dateStr: string): string {
@@ -90,6 +90,11 @@ export function DashboardShareCard({ share }: { share: ShareWithPasswordFlag }) 
             <Link href={`/s/${share.slug}`} target="_blank">
               <Button variant="ghost" size="icon-sm">
                 <ExternalLink className="size-4" />
+              </Button>
+            </Link>
+            <Link href={`/dashboard/analytics/${share.slug}`}>
+              <Button variant="ghost" size="icon-sm" title="Analytics">
+                <BarChart3 className="size-4" />
               </Button>
             </Link>
             <Button

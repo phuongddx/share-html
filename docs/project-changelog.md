@@ -2,6 +2,43 @@
 
 All notable changes to DropItX.
 
+## [v2.0.0] — 2026-04-26
+
+### Added
+- **oEmbed API**: Standardized content embedding with `GET /api/oembed` endpoint supporting JSON and XML formats
+- **Rich Metadata Generation**: Title, author, embed code generation for third-party platform integration
+- **WordPress/Medium Compatibility**: XML response format for popular content management systems
+- **Analytics System**: Real-time user engagement tracking with `analytics_events` table
+- **Behavioral Analytics**: Page views, search queries, upload tracking, and API usage monitoring
+- **Content Performance Metrics**: Popular shares, search trends, and geographic distribution analysis
+- **Team Workspaces**: Collaborative workspace creation and management system
+- **Role-Based Access Control**: Owner vs member permissions for workspace content
+- **Workspace Sharing**: Members can share content to workspaces and organize collectively
+- **Invitation System**: Workspace owners can add/remove members with email invitations
+- **Private Workspace Isolation**: Row-level security ensuring data privacy between workspaces
+
+### Infrastructure Enhancements
+- **Analytics Dashboard**: Real-time metrics dashboard showing user engagement and content performance
+- **Embed Security**: Domain validation, CSP headers, and content filtering for embedded iframes
+- **Workspace APIs**: Full CRUD operations for workspaces, members, and shared content
+- **Performance Monitoring**: Request rates, error tracking, and endpoint popularity analysis
+
+### Database Migrations
+- `20260426000001_add_analytics_tables.sql`: `analytics_events` table for user tracking
+- `20260426000002_add_team_workspaces.sql`: `team_workspaces`, `workspace_members`, `workspace_shares` tables
+- `20260426000003_add_oembed_support.sql`: Enhanced share metadata for embedding
+
+### New Environment Variables
+- `ANALYTICS_SECRET` — Secret key for analytics data signing and validation
+- `EMBED_ALLOWED_DOMAINS` — Comma-separated list of approved embedding domains
+
+### New Dependencies
+- `uuid` — For generating unique session and event identifiers
+- `@radix-ui/react-toast` — Analytics notification system
+- `recharts` — Dashboard charting and data visualization
+
+---
+
 ## [v1.3.2] — 2026-04-26
 
 ### Added

@@ -43,6 +43,25 @@ export async function checkRateLimit(ip: string): Promise<{
   }
 }
 
+export async function checkOembedRateLimit(ip: string): Promise<{
+  success: boolean;
+  limit: number;
+  remaining: number;
+  reset: number;
+}> {
+  try {
+    const row = await callRateLimit(`oembed:${ip}`, 60, 60);
+    return {
+      success: row.success,
+      limit: 60,
+      remaining: row.remaining,
+      reset: new Date(row.reset_at).getTime(),
+    };
+  } catch {
+    return { success: true, limit: 60, remaining: 60, reset: Date.now() };
+  }
+}
+
 export async function checkPasswordRateLimit(
   ip: string,
   slug: string,
@@ -57,5 +76,15 @@ export async function checkPasswordRateLimit(
   } catch {
     // Fail-closed: deny access when DB is unavailable to prevent brute force
     return { success: false, remaining: 0, reset: Date.now() + 600_000 };
+  }
+}
+
+/** Analytics tracking: 60 requests per minute per IP (fail-open). */
+export async function checkAnalyticsRateLimit(ip: string): Promise<boolean> {
+  try {
+    const row = await callRateLimit(`analytics:${ip}`, 60, 60);
+    return row.success;
+  } catch {
+    return true; // fail-open when DB unavailable
   }
 }

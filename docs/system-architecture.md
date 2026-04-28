@@ -297,6 +297,72 @@ DELETE /api/v1/keys/[id]  →  set revoked_at = NOW()
 | `created_at` | TIMESTAMPTZ | |
 | `revoked_at` | TIMESTAMPTZ nullable | soft-delete |
 
+### `team_workspaces` table
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | UUID PK | auto-generated |
+| `name` | TEXT | workspace name |
+| `description` | TEXT | workspace description (nullable) |
+| `owner_id` | UUID FK → auth.users | workspace creator and owner |
+| `created_at` | TIMESTAMPTZ | auto-set |
+| `updated_at` | TIMESTAMPTZ | trigger-updated |
+
+### `workspace_members` table
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | UUID PK | auto-generated |
+| `workspace_id` | UUID FK → team_workspaces | |
+| `user_id` | UUID FK → auth.users | |
+| `role` | TEXT | `'owner'` or `'member'` |
+| `created_at` | TIMESTAMPTZ | auto-set |
+| — | UNIQUE(workspace_id, user_id) | |
+
+### `workspace_shares` table
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | UUID PK | auto-generated |
+| `workspace_id` | UUID FK → team_workspaces | |
+| `share_id` | UUID FK → shares | reference to shared content |
+| `user_id` | UUID FK → auth.users | user who shared to workspace |
+| `created_at` | TIMESTAMPTZ | auto-set |
+| — | UNIQUE(workspace_id, share_id) | |
+
+### RPCs
+- `search_shares(query, limit, offset)` — full-text search with ranking + highlighted snippets; filters `is_private` unless owner
+- `increment_view_count(slug)` — atomic view counter
+- `get_user_workspaces(user_id)` — list all workspaces the user belongs to
+- `is_user_in_workspace(user_id, workspace_id)` — check if user has access to workspace
+
+### `user_profiles` table
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | UUID PK FK → auth.users | |
+| `display_name` | TEXT | editable |
+| `avatar_url` | TEXT | editable |
+| `created_at` | TIMESTAMPTZ | |
+| `updated_at` | TIMESTAMPTZ | trigger-updated |
+
+### `favorites` table
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | UUID PK | |
+| `user_id` | UUID FK | |
+| `share_id` | UUID FK | |
+| `created_at` | TIMESTAMPTZ | |
+| — | UNIQUE(user_id, share_id) | |
+
+### `api_keys` table
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | UUID PK | |
+| `user_id` | UUID FK | |
+| `name` | TEXT | user-supplied label |
+| `key_hash` | VARCHAR(64) | SHA-256 of full key |
+| `key_prefix` | VARCHAR(12) | display only (`shk_xxxxxx`) |
+| `last_used_at` | TIMESTAMPTZ | async update on auth |
+| `created_at` | TIMESTAMPTZ | |
+| `revoked_at` | TIMESTAMPTZ nullable | soft-delete |
+
 ### RPCs
 - `search_shares(query, limit, offset)` — full-text search with ranking + highlighted snippets; filters `is_private` unless owner
 - `increment_view_count(slug)` — atomic view counter
@@ -333,6 +399,7 @@ DELETE /api/v1/keys/[id]  →  set revoked_at = NOW()
 | Private shares | RLS + `search_shares` RPC filter non-owner requests |
 | Password protection | bcryptjs hash in `shares.password_hash`; HMAC-SHA256 signed HttpOnly access cookie (24 h); `password_hash` never sent to client |
 | Compensating tx | Storage cleanup if DB insert fails |
+| Workspace access | RLS policies on `team_workspaces`, `workspace_members`, and `workspace_shares` tables |
 
 ## Infrastructure
 
@@ -342,3 +409,119 @@ DELETE /api/v1/keys/[id]  →  set revoked_at = NOW()
 | Database | PostgreSQL + Storage | Supabase |
 | Rate limiting | Redis sliding window | Upstash |
 | CDN | Static assets + storage files | Vercel + Supabase |
+| Monitoring | Error tracking and analytics | Sentry/Upstash Metrics |
+| Search | Full-text search with GIN indexes | PostgreSQL built-in |
+
+## oEmbed Endpoint Architecture
+
+### Overview
+The oEmbed endpoint enables rich content embedding across third-party platforms by providing standardized metadata and embed codes.
+
+### Endpoint Structure
+```
+GET /api/oembed?url=https://dropitx.app/s/{slug}  → JSON metadata + HTML embed
+GET /api/oembed.json?url=...                       → JSON response (standard oEmbed)
+GET /api/oembed.xml?url=...                        → XML response (WordPress compatible)
+```
+
+### Response Format
+```json
+{
+  "type": "rich",
+  "version": "1.0",
+  "provider_name": "DropItX",
+  "provider_url": "https://dropitx.app",
+  "title": "Document Title",
+  "author_name": "Author Name",
+  "author_url": "https://dropitx.app/dashboard",
+  "html": "<iframe src='https://dropitx.app/s/{slug}/embed' width='800' height='600'></iframe>",
+  "width": 800,
+  "height": 600
+}
+```
+
+### Workflow
+1. **URL Parsing**: Extract slug from `url` query parameter
+2. **Share Lookup**: Fetch share metadata (title, mime_type, user profile)
+3. **Access Control**: Verify share accessibility (public, authenticated, password-gated)
+4. **Metadata Generation**: Create oEmbed response with share details
+5. **Embed Code**: Generate sandboxed iframe with appropriate dimensions
+
+### Security
+- **Domain Validation**: Only allow dropitx.app domains
+- **Content Filtering**: Strip executable content for embeds
+- **Rate Limiting**: 100 requests/min per IP via Upstash
+- **CSP Headers**: Strict Content Security Policy for embedded content
+
+## Analytics Tracking Architecture
+
+### Overview
+Real-time analytics system for tracking user engagement, content performance, and platform metrics.
+
+### Data Collection Points
+- **Page Views**: `GET /s/[slug]` endpoint captures view events
+- **Search Queries**: `/api/search` endpoint captures search terms
+- **Editor Usage**: `/editor` page tracks keystrokes, auto-saves, publishes
+- **Uploads**: `/api/upload` tracks file types, sizes, success rates
+- **API Calls**: Versioned API endpoints track usage patterns
+
+### Storage Schema
+#### `analytics_events` table
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | UUID PK | auto-generated |
+| `event_type` | TEXT | `'page_view'`, `'search'`, `'upload'`, `'api_call'` |
+| `user_id` | UUID FK (nullable) | authenticated user |
+| `session_id` | UUID | anonymous session tracking |
+| `metadata` | JSONB | event-specific data (slug, query, status, etc.) |
+| `user_agent` | TEXT | browser/user agent string |
+| `ip_address` | INET | client IP (rate limiting) |
+| `created_at` | TIMESTAMPTZ | auto-set |
+
+### Tracking Implementation
+```typescript
+// Client-side: lib/track.ts
+track('page_view', { slug: 'abc123', referrer: document.referrer });
+track('search', { query: 'typescript results: 5' });
+track('upload', { file_size: 1024000, mime_type: 'text/html' });
+```
+
+### Analytics Dashboard
+- **Real-time Metrics**: Live view counts, popular content, search trends
+- **User Engagement**: Session duration, bounce rate, feature adoption
+- **Content Performance**: Most viewed shares, search terms, upload patterns
+- **API Usage**: Request rates, error tracking, endpoint popularity
+- **Geographic Distribution**: User location analysis
+
+## Team Workspaces Data Model
+
+### Overview
+Collaborative workspaces enabling teams to organize and share content collectively.
+
+### Access Control
+```
+Ownership: workspace owner has full access
+Membership: workspace members can view and share content
+RLS Policies: Row-level security ensures data isolation
+```
+
+### Key Flows
+1. **Workspace Creation**: Owner creates workspace, automatically added as member
+2. **Member Invitations**: Owner adds members via email or direct invite
+3. **Content Sharing**: Members can upload content to workspace or share existing shares
+4. **Permission Management**: Owners can remove members and delete workspace content
+
+### Security Features
+- **Private Workspaces**: All workspaces are private by default
+- **Permission Escalation**: Role-based access control (owner vs member)
+- **Audit Logging**: Track content sharing and member changes
+- **Data Isolation**: Members only see workspaces they belong to
+
+### API Endpoints
+- `POST /api/workspaces` - Create new workspace
+- `GET /api/workspaces` - List user's workspaces
+- `GET /api/workspaces/[id]` - Get workspace details
+- `POST /api/workspaces/[id]/members` - Add member to workspace
+- `DELETE /api/workspaces/[id]/members/[user_id]` - Remove member
+- `POST /api/workspaces/[id]/shares` - Share content to workspace
+- `GET /api/workspaces/[id]/shares` - List workspace content
