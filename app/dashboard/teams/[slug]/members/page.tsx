@@ -134,7 +134,7 @@ export default function TeamMembersPage({
             <ArrowLeft className="size-3" />
             Back to Team
           </Link>
-          <h1 className="text-2xl font-bold">Members</h1>
+          <h1 className="font-mono text-lg font-semibold">Members</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {team.name} · {members.length} member{members.length !== 1 ? "s" : ""}
           </p>
@@ -147,7 +147,7 @@ export default function TeamMembersPage({
         )}
       </div>
 
-      <Card>
+      <Card className="border border-border rounded-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="size-5" />
@@ -155,7 +155,7 @@ export default function TeamMembersPage({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="divide-y">
+          <div className="divide-y divide-border">
             {members.map((m) => (
               <TeamMemberRow
                 key={m.user_id}

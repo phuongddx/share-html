@@ -156,13 +156,13 @@ export function ApiKeyManager() {
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm truncate">{k.name}</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="secondary" className="font-mono text-xs">
+                    <Badge variant="secondary" className="font-mono text-sm">
                       {k.key_prefix}...
                     </Badge>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-sm text-muted-foreground">
                       Created {formatDate(k.created_at)}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-sm text-muted-foreground">
                       Last used {formatDate(k.last_used_at)}
                     </span>
                   </div>
@@ -188,7 +188,7 @@ export function ApiKeyManager() {
         {/* Dialog overlay */}
         {showDialog && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="bg-card rounded-xl shadow-lg w-full max-w-md mx-4 p-6 space-y-4">
+            <div className="bg-card rounded-lg border border-border w-full max-w-md mx-4 p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-lg">
                   {newKey ? "Your New API Key" : "Generate API Key"}
@@ -200,7 +200,7 @@ export function ApiKeyManager() {
 
               {newKey ? (
                 <div className="space-y-3">
-                  <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3 text-sm text-yellow-800 dark:text-yellow-200">
+                  <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
                     Copy this key now. It won&apos;t be shown again.
                   </div>
                   <div className="flex items-center gap-2">

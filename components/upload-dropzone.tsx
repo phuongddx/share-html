@@ -97,7 +97,7 @@ export function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps) {
       case "success":
         return (
           <div className="animate-scale-in">
-            <CheckCircle2 className={`${base} text-green-600 dark:text-green-400`} />
+            <CheckCircle2 className={`${base} text-success`} />
           </div>
         );
       case "error":
@@ -127,21 +127,21 @@ export function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps) {
   };
 
   const cardClasses = [
-    "cursor-pointer transition-all duration-200",
+    "cursor-pointer transition-colors duration-200",
     state === "idle" && !dragActive
-      ? "border-dashed border-2 border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/[0.02]"
+      ? "border-dashed border-2 border-border hover:border-primary/50"
       : "",
     dragActive
-      ? "border-primary border-2 ring-2 ring-primary/20 bg-primary/[0.03] scale-[1.02]"
+      ? "border-solid border-2 border-primary bg-primary/[0.03]"
       : "",
     state === "error"
-      ? "border-destructive/50 border-2 bg-destructive/[0.02]"
+      ? "border-2 border-destructive/50 bg-destructive/[0.03]"
       : "",
     state === "success"
-      ? "border-green-500/50 border-2 bg-green-50 dark:bg-green-950/20"
+      ? "border-2 border-success/50 bg-success/[0.03]"
       : "",
     state === "uploading"
-      ? "border-primary/30 border-2 cursor-wait"
+      ? "border-2 border-primary/30 animate-border-pulse cursor-wait"
       : "",
   ]
     .filter(Boolean)
@@ -150,19 +150,6 @@ export function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps) {
   return (
     <Card {...getRootProps()} className={cardClasses}>
       <CardContent className="flex flex-col items-center justify-center gap-5 py-14">
-        {/* Shimmer overlay while uploading */}
-        {state === "uploading" && (
-          <div
-            className="absolute inset-0 rounded-xl animate-shimmer pointer-events-none"
-            style={{
-              background:
-                "linear-gradient(90deg, transparent 0%, rgba(37,99,235,0.06) 50%, transparent 100%)",
-              backgroundSize: "200% 100%",
-            }}
-            aria-hidden="true"
-          />
-        )}
-
         <div className="relative">{stateIcon()}</div>
 
         <p

@@ -54,7 +54,7 @@ export function InviteAcceptForm({
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="max-w-md rounded-lg border bg-card p-8 text-center shadow-sm">
+      <div className="max-w-sm rounded-lg border border-border bg-card p-8 text-center">
         <h1 className="text-xl font-semibold">Accept Team Invite</h1>
         <p className="mt-2 text-muted-foreground">
           You have been invited to join <strong>{teamName}</strong> as{" "}

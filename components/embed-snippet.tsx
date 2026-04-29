@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Code, Copy, Check } from "lucide-react";
 
 interface EmbedSnippetProps {
@@ -21,18 +20,15 @@ export function EmbedSnippet({ slug }: EmbedSnippetProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+      <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground flex items-center gap-1">
         <Code className="size-3" />
         Embed
       </label>
       <div className="flex items-center gap-2">
-        <Input
-          value={embedCode}
-          readOnly
-          className="font-mono text-xs"
-          onClick={(e) => (e.target as HTMLInputElement).select()}
-        />
-        <Button variant="outline" size="icon" onClick={handleCopy} className="shrink-0">
+        <div className="flex-1 bg-secondary rounded-md p-3 font-mono text-sm overflow-x-auto">
+          <code className="text-xs break-all">{embedCode}</code>
+        </div>
+        <Button variant="outline" size="icon" onClick={handleCopy} className="shrink-0 rounded-md">
           {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
         </Button>
       </div>

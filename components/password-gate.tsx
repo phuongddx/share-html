@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Lock, Loader2 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -60,16 +59,15 @@ export function PasswordGate({ slug, title }: PasswordGateProps) {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-sm">
-        <CardContent className="flex flex-col items-center gap-5 pt-8 pb-8">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-            <Lock className="size-6 text-muted-foreground" />
-          </div>
+      <div className="w-full max-w-sm border border-border rounded-lg p-8">
+        <div className="flex flex-col items-center gap-5">
+          <p className="font-mono text-2xl font-semibold tracking-tight">
+            {">"} unlock
+          </p>
 
-          <div className="text-center space-y-1">
-            <p className="font-semibold">This content is protected</p>
-            <p className="text-sm text-muted-foreground truncate max-w-[240px]">{title}</p>
-          </div>
+          <p className="text-sm text-muted-foreground truncate max-w-[240px] text-center">
+            {title}
+          </p>
 
           <form onSubmit={handleSubmit} className="w-full flex flex-col gap-3">
             <Input
@@ -80,8 +78,9 @@ export function PasswordGate({ slug, title }: PasswordGateProps) {
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
               autoComplete="current-password"
+              className="h-10 rounded-md"
             />
-            <Button type="submit" disabled={loading || !password} className="w-full">
+            <Button type="submit" disabled={loading || !password} className="w-full rounded-md">
               {loading ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
@@ -114,8 +113,8 @@ export function PasswordGate({ slug, title }: PasswordGateProps) {
           >
             Sign in to view
           </a>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

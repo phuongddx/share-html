@@ -204,7 +204,7 @@ export default async function SharePage({ params }: SharePageProps) {
   const isMarkdown = share.mime_type === "text/markdown";
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 md:p-6 max-w-5xl mx-auto w-full animate-fade-in">
+    <div className="flex flex-1 flex-col gap-4 p-4 md:p-6 max-w-[1200px] mx-auto w-full animate-fade-in">
       <ShareViewedTracker />
       <ShareAnalyticsTracker shareId={share.id} trackingToken={trackingToken} />
       {/* Metadata header */}
@@ -214,9 +214,9 @@ export default async function SharePage({ params }: SharePageProps) {
             <div className="flex items-center gap-3 min-w-0">
               <div className="shrink-0">
                 {isMarkdown ? (
-                  <FileText className="size-5 text-violet-500" />
+                  <FileText className="size-5 text-primary" />
                 ) : (
-                  <FileCode className="size-5 text-violet-500" />
+                  <FileCode className="size-5 text-primary" />
                 )}
               </div>
               <CardTitle className="truncate text-lg">{share.filename}</CardTitle>

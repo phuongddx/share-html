@@ -16,7 +16,7 @@ export function TeamNav({ teams }: TeamNavProps) {
     return (
       <Link
         href="/dashboard/teams/new"
-        className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-muted transition-colors text-muted-foreground"
+        className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-muted transition-colors duration-200 text-muted-foreground"
       >
         <Plus className="size-4" />
         Create Team
@@ -30,7 +30,7 @@ export function TeamNav({ teams }: TeamNavProps) {
         <Link
           key={t.slug}
           href={`/dashboard/teams/${t.slug}`}
-          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-muted transition-colors"
+          className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-muted transition-colors duration-200"
         >
           <Users className="size-4" />
           <span className="truncate">{t.name}</span>
@@ -38,7 +38,7 @@ export function TeamNav({ teams }: TeamNavProps) {
       ))}
       <Link
         href="/dashboard/teams/new"
-        className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-muted transition-colors text-muted-foreground"
+        className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-muted transition-colors duration-200 text-muted-foreground"
       >
         <Plus className="size-4" />
         Create Team

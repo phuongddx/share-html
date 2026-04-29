@@ -184,12 +184,12 @@ export function MarkdownViewer({ content, headings }: MarkdownViewerProps) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-end">
-        <div className="inline-flex rounded-md border bg-muted p-1 text-muted-foreground text-xs gap-1">
+        <div className="inline-flex rounded-md border border-border bg-secondary p-1 text-muted-foreground text-xs gap-1">
           <button
             onClick={() => setMode("preview")}
-            className={`rounded px-3 py-1 font-medium transition-colors ${
+            className={`rounded px-3 py-1 font-medium transition-colors duration-200 ${
               mode === "preview"
-                ? "bg-background text-foreground shadow-sm"
+                ? "bg-background text-foreground"
                 : "hover:text-foreground"
             }`}
           >
@@ -197,9 +197,9 @@ export function MarkdownViewer({ content, headings }: MarkdownViewerProps) {
           </button>
           <button
             onClick={() => setMode("raw")}
-            className={`rounded px-3 py-1 font-medium transition-colors ${
+            className={`rounded px-3 py-1 font-medium transition-colors duration-200 ${
               mode === "raw"
-                ? "bg-background text-foreground shadow-sm"
+                ? "bg-background text-foreground"
                 : "hover:text-foreground"
             }`}
           >

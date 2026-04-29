@@ -40,13 +40,13 @@ export default async function DashboardLayout({
   return (
     <div className="flex min-h-screen">
       {/* Sidebar — nav links only; HeaderBar provides logo + profile */}
-      <aside className="hidden md:flex w-56 flex-col border-r bg-card">
+      <aside className="hidden md:flex w-56 flex-col border-r border-border bg-card">
         <div className="flex-1 p-3 space-y-1 pt-4">
           {navItems.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-muted transition-colors"
+              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-muted transition-colors duration-200"
             >
               <Icon className="size-4" />
               {label}
@@ -64,7 +64,7 @@ export default async function DashboardLayout({
       </aside>
 
       {/* Mobile nav */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-card">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card">
         <div className="flex justify-around py-2">
           {navItems.map(({ href, label, icon: Icon }) => (
             <Link
@@ -82,7 +82,7 @@ export default async function DashboardLayout({
 
       {/* Main content */}
       <main className="flex-1 overflow-auto">
-        <div className="p-4 md:p-6 pb-20 md:pb-6 max-w-4xl mx-auto w-full">
+        <div className="p-4 md:p-6 pb-20 md:pb-6 max-w-[1200px] mx-auto w-full">
           {children}
         </div>
       </main>

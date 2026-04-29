@@ -27,12 +27,14 @@ export default async function ProfilePage() {
     .map((p: string) => PROVIDER_LABELS[p] ?? p);
 
   return (
-    <ProfileForm
-      userId={user.id}
-      displayName={profile?.display_name ?? ""}
-      avatarUrl={profile?.avatar_url ?? ""}
-      email={user.email ?? ""}
-      providers={providers}
-    />
+    <div className="max-w-[680px]">
+      <ProfileForm
+        userId={user.id}
+        displayName={profile?.display_name ?? ""}
+        avatarUrl={profile?.avatar_url ?? ""}
+        email={user.email ?? ""}
+        providers={providers}
+      />
+    </div>
   );
 }

@@ -1,23 +1,39 @@
 "use client";
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import { useTheme } from "next-themes";
 import type { PieLabelRenderProps } from "recharts";
 import type { GeoBreakdown } from "@/types/analytics";
+
+const CHART_COLORS = {
+  violet: '#7C3AED',
+  emerald: '#059669',
+  blue: '#4F46E5',
+  amber: '#D97706',
+  zinc: '#71717A',
+};
+
+const CHART_COLORS_DARK = {
+  violet: '#A78BFA',
+  emerald: '#34D399',
+  blue: '#818CF8',
+  amber: '#FBBF24',
+  zinc: '#A1A1AA',
+};
+
+const PIE_PALETTE_LIGHT = [
+  '#7C3AED', '#4F46E5', '#059669', '#D97706',
+  '#8B5CF6', '#DC2626', '#CA8A04', '#0D9488',
+];
+
+const PIE_PALETTE_DARK = [
+  '#A78BFA', '#818CF8', '#34D399', '#FBBF24',
+  '#C4B5FD', '#F87171', '#FACC15', '#5EEAD4',
+];
 
 interface AnalyticsGeoChartProps {
   data: GeoBreakdown[];
 }
-
-const PALETTE = [
-  "hsl(258, 90%, 66%)",
-  "hsl(200, 90%, 50%)",
-  "hsl(150, 60%, 45%)",
-  "hsl(30, 90%, 55%)",
-  "hsl(260, 70%, 60%)",
-  "hsl(0, 70%, 55%)",
-  "hsl(45, 80%, 50%)",
-  "hsl(180, 60%, 45%)",
-];
 
 const COUNTRY_NAMES: Record<string, string> = {
   US: "United States", GB: "United Kingdom", DE: "Germany", FR: "France",
@@ -34,7 +50,7 @@ function CustomTooltip({ active, payload }: {
   const item = payload[0].payload;
   const name = COUNTRY_NAMES[item.country_code] ?? item.country_code;
   return (
-    <div className="rounded-lg border bg-card p-3 shadow-sm text-sm">
+    <div className="rounded-md border border-border bg-popover p-3 text-sm">
       <p className="font-medium">{name}</p>
       <p className="text-muted-foreground">{item.views} views</p>
     </div>
@@ -42,6 +58,9 @@ function CustomTooltip({ active, payload }: {
 }
 
 export function AnalyticsGeoChart({ data }: AnalyticsGeoChartProps) {
+  const isDark = useTheme().theme === "dark";
+  const palette = isDark ? PIE_PALETTE_DARK : PIE_PALETTE_LIGHT;
+
   // Bucket small countries into "Other"
   const top = data.slice(0, 8);
   const otherViews = data.slice(8).reduce((sum, d) => sum + d.views, 0);
@@ -63,7 +82,6 @@ export function AnalyticsGeoChart({ data }: AnalyticsGeoChartProps) {
             cy="50%"
             outerRadius={80}
             label={(props: PieLabelRenderProps) => {
-              // recharts passes data entry fields alongside label props
               const entry = props as PieLabelRenderProps & GeoBreakdown;
               const cc = entry.country_code ?? String(props.name ?? "");
               const views = entry.views ?? Number(props.value ?? 0);
@@ -74,7 +92,7 @@ export function AnalyticsGeoChart({ data }: AnalyticsGeoChartProps) {
             fontSize={11}
           >
             {chartData.map((_, i) => (
-              <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
+              <Cell key={i} fill={palette[i % palette.length]} />
             ))}
           </Pie>
           <Tooltip content={<CustomTooltip />} />

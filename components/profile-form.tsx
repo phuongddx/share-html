@@ -89,10 +89,10 @@ export function ProfileForm({
                 src={avatarUrl}
                 alt=""
                 referrerPolicy="no-referrer"
-                className="size-16 rounded-full"
+                className="size-16 rounded-md"
               />
             ) : (
-              <div className="size-16 rounded-full bg-violet-600 flex items-center justify-center text-white text-xl font-bold">
+              <div className="size-16 rounded-md bg-primary flex items-center justify-center text-white text-xl font-bold">
                 {initial}
               </div>
             )}

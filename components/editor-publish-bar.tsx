@@ -116,13 +116,13 @@ export function EditorPublishBar({
   const readingTime = wordCount > 0 ? Math.ceil(wordCount / 200) : 0;
 
   return (
-    <div className="sticky bottom-0 z-20 flex items-center justify-between border-t bg-background px-4 py-2">
+    <div className="sticky bottom-0 z-20 flex items-center justify-between border-t border-border bg-background px-4 py-2">
       <div className="flex items-center gap-4 text-xs text-muted-foreground">
         <span>{charCount.toLocaleString()} chars</span>
         <span>{wordCount.toLocaleString()} words</span>
         {readingTime > 0 && <span>{readingTime} min read</span>}
         {isDirty && !publishedUrl && (
-          <span className="text-amber-500">Unsaved</span>
+          <span className="text-muted-foreground">Unsaved</span>
         )}
         {mode === "edit" && editTitle && (
           <Badge variant="outline" className="text-xs">
@@ -140,7 +140,7 @@ export function EditorPublishBar({
           title={isPrivate ? "Make public" : "Make private"}
         >
           {isPrivate ? (
-            <Lock className="size-4 text-amber-500" />
+            <Lock className="size-4 text-foreground" />
           ) : (
             <Unlock className="size-4 text-muted-foreground" />
           )}

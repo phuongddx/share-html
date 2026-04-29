@@ -95,7 +95,7 @@ export function TeamMemberRow({
   }
 
   return (
-    <div className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+    <div className="flex items-center gap-3 py-3 border-b border-border last:border-b-0">
       {/* Avatar */}
       {avatarUrl ? (
         /* eslint-disable-next-line @next/next/no-img-element */
@@ -103,10 +103,10 @@ export function TeamMemberRow({
           src={avatarUrl}
           alt=""
           referrerPolicy="no-referrer"
-          className="size-8 rounded-full shrink-0"
+          className="size-8 rounded-md shrink-0"
         />
       ) : (
-        <div className="size-8 rounded-full bg-violet-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+        <div className="size-8 rounded-md bg-muted flex items-center justify-center text-primary text-xs font-bold shrink-0">
           {initial}
         </div>
       )}
@@ -134,7 +134,7 @@ export function TeamMemberRow({
               disabled={changingRole}
               type="button"
             >
-              <Badge variant={ROLE_COLORS[role]}>{role}</Badge>
+              <Badge variant={ROLE_COLORS[role]} className="font-mono text-sm rounded-sm">{role}</Badge>
               {changingRole ? (
                 <Loader2 className="size-3 animate-spin" />
               ) : (
@@ -142,11 +142,11 @@ export function TeamMemberRow({
               )}
             </button>
             {menuOpen && (
-              <div className="absolute right-0 top-full mt-1 z-10 bg-card border rounded-lg shadow-lg py-1 min-w-[100px]">
+              <div className="absolute right-0 top-full mt-1 z-10 bg-card border border-border rounded-lg py-1 min-w-[100px]">
                 {TEAM_ROLES.filter((r) => r !== role).map((r) => (
                   <button
                     key={r}
-                    className="w-full text-left px-3 py-1.5 text-sm hover:bg-muted transition-colors"
+                    className="w-full text-left px-3 py-1.5 text-sm hover:bg-muted transition-colors duration-200"
                     onClick={() => handleChangeRole(r)}
                     type="button"
                   >
@@ -157,7 +157,7 @@ export function TeamMemberRow({
             )}
           </>
         ) : (
-          <Badge variant={ROLE_COLORS[role]}>{role}</Badge>
+          <Badge variant={ROLE_COLORS[role]} className="font-mono text-sm rounded-sm">{role}</Badge>
         )}
       </div>
 

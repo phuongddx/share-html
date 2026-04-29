@@ -75,7 +75,7 @@ export default async function TeamOverviewPage({
   const isOwnerOrEditor = userRole === "owner" || userRole === "editor";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-[1200px]">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -87,7 +87,7 @@ export default async function TeamOverviewPage({
             Back to Teams
           </Link>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold">{team.name}</h1>
+            <h1 className="font-mono text-lg font-semibold">{team.name}</h1>
             <Badge variant={ROLE_COLORS[userRole] ?? "outline"}>{userRole}</Badge>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
@@ -116,21 +116,21 @@ export default async function TeamOverviewPage({
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-lg border bg-card p-4">
+        <div className="rounded-lg border border-border bg-card p-4">
           <div className="flex items-center gap-2 text-muted-foreground text-sm">
             <FileText className="size-4" />
             Shares
           </div>
           <p className="text-2xl font-bold mt-1">{validShares.length}</p>
         </div>
-        <div className="rounded-lg border bg-card p-4">
+        <div className="rounded-lg border border-border bg-card p-4">
           <div className="flex items-center gap-2 text-muted-foreground text-sm">
             <Eye className="size-4" />
             Views
           </div>
           <p className="text-2xl font-bold mt-1">{totalViews}</p>
         </div>
-        <div className="rounded-lg border bg-card p-4">
+        <div className="rounded-lg border border-border bg-card p-4">
           <div className="flex items-center gap-2 text-muted-foreground text-sm">
             <Users className="size-4" />
             Members

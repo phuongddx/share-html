@@ -40,12 +40,12 @@ export function AnalyticsStatsCards({ analytics }: AnalyticsStatsCardsProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {cards.map(({ label, value, sub, icon: Icon }) => (
-        <div key={label} className="rounded-lg border bg-card p-4">
-          <div className="flex items-center gap-2 text-muted-foreground text-sm">
+        <div key={label} className="rounded-lg border border-border bg-card p-4">
+          <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
             <Icon className="size-4" />
             {label}
           </div>
-          <p className="text-2xl font-bold mt-1">{value}</p>
+          <p className="font-mono text-3xl font-bold mt-1">{value}</p>
           {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
         </div>
       ))}

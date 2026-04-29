@@ -85,6 +85,7 @@ export function CreateTeamForm() {
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Engineering, Design Team"
               maxLength={100}
+              className="h-10 rounded-md"
             />
           </div>
 
@@ -101,6 +102,7 @@ export function CreateTeamForm() {
               }}
               placeholder="team-slug"
               maxLength={50}
+              className="h-10 rounded-md"
             />
             <p className="text-xs text-muted-foreground">
               URL: /dashboard/teams/{displaySlug || "..."}
@@ -118,6 +120,7 @@ export function CreateTeamForm() {
             <Button
               type="submit"
               disabled={submitting || !nameValid || !slugValid}
+              className="rounded-md"
             >
               {submitting ? (
                 <Loader2 className="size-4 animate-spin" />

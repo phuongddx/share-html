@@ -20,13 +20,20 @@ import { imageDropExtension } from "./editor-extensions/image-drop";
 export const themeCompartment = new Compartment();
 
 const lightTheme = EditorView.theme({
-  "&": { backgroundColor: "#ffffff" },
-  ".cm-content": { color: "#1f2937" },
+  "&": { backgroundColor: "var(--background)" },
+  ".cm-content": { color: "var(--foreground)" },
   ".cm-gutters": {
-    backgroundColor: "#f9fafb",
-    color: "#6b7280",
+    backgroundColor: "var(--secondary)",
+    color: "var(--muted-foreground)",
     border: "none",
   },
+  ".cm-cursor": { borderLeftColor: "var(--foreground)" },
+  ".cm-activeLine": { backgroundColor: "var(--secondary)" },
+  ".cm-selectionBackground": { backgroundColor: "oklch(from var(--primary) l c h / 0.2)" },
+  ".cm-matchingBracket": { backgroundColor: "oklch(from var(--primary) l c h / 0.15)", outline: "none" },
+  ".cm-lineNumbers .cm-gutterElement": { color: "var(--muted-foreground)" },
+  ".cm-foldGutter .cm-gutterElement": { color: "var(--muted-foreground)" },
+  ".cm-placeholder": { color: "var(--muted-foreground)" },
 });
 
 function bold(view: EditorView): boolean {

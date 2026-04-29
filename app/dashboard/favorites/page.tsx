@@ -33,7 +33,7 @@ export default async function FavoritesPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Favorites</h1>
+      <h1 className="font-mono text-lg font-semibold">Favorites</h1>
 
       {shares.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">

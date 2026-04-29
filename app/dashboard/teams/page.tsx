@@ -59,9 +59,9 @@ export default async function TeamsPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-[1200px]">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Teams</h1>
+        <h1 className="font-mono text-lg font-semibold">Teams</h1>
         <Link href="/dashboard/teams/new">
           <Button size="sm">
             <Plus className="size-4" />
@@ -85,10 +85,10 @@ export default async function TeamsPage() {
         <div className="grid gap-4 sm:grid-cols-2">
           {teams.map((team) => (
             <Link key={team.id} href={`/dashboard/teams/${team.slug}`}>
-              <Card className="hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer">
+              <Card className="border border-border rounded-lg transition-colors duration-200 cursor-pointer">
                 <CardContent className="p-4 space-y-2">
                   <div className="flex items-center gap-2">
-                    <Users className="size-5 text-violet-500 shrink-0" />
+                    <Users className="size-5 text-primary shrink-0" />
                     <p className="font-medium truncate flex-1">{team.name}</p>
                     <Badge variant={ROLE_COLORS[team.role]} className="shrink-0 text-xs">
                       {team.role}

@@ -96,7 +96,7 @@ export function InviteMemberDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-card rounded-xl shadow-lg w-full max-w-lg mx-4 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-card border border-border rounded-lg w-full max-w-lg mx-4 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-lg">Invite Member</h3>
           <Button variant="ghost" size="icon-xs" onClick={onClose}>
@@ -117,6 +117,7 @@ export function InviteMemberDialog({
               onChange={(e) => setEmail(e.target.value)}
               placeholder="colleague@example.com"
               maxLength={255}
+              className="h-10 rounded-md"
             />
           </div>
           <div className="space-y-1.5">
@@ -127,7 +128,7 @@ export function InviteMemberDialog({
               id="invite-role"
               value={role}
               onChange={(e) => setRole(e.target.value as TeamRole)}
-              className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              className="h-10 w-full rounded-md border border-input bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               <option value="viewer">Viewer — Can view shares</option>
               <option value="editor">Editor — Can create and edit shares</option>

@@ -69,13 +69,13 @@ export default async function PerShareAnalyticsPage({ params }: PerShareAnalytic
           <ArrowLeft className="size-4" />
         </Link>
         <div className="flex-1 min-w-0">
-          <h1 className="text-2xl font-bold truncate">{title}</h1>
+          <h1 className="text-2xl font-bold truncate font-mono">{title}</h1>
           <p className="text-sm text-muted-foreground">/{share.slug}</p>
         </div>
       </div>
 
       {/* Share URL quick copy */}
-      <div className="flex items-center gap-2 rounded-lg border bg-card p-3">
+      <div className="flex items-center gap-2 rounded-lg border border-border bg-card p-3">
         <LinkIcon className="size-4 text-muted-foreground shrink-0" />
         <span className="text-sm truncate flex-1">{shareUrl}</span>
         <button
@@ -93,23 +93,23 @@ export default async function PerShareAnalyticsPage({ params }: PerShareAnalytic
           <AnalyticsStatsCards analytics={analytics} />
 
           {/* Views over time */}
-          <div className="rounded-lg border bg-card p-4">
-            <h2 className="text-sm font-semibold mb-4">Views Over Time (30d)</h2>
+          <div className="rounded-lg border border-border bg-card p-4">
+            <h2 className="font-mono text-sm font-semibold mb-4">Views Over Time (30d)</h2>
             <AnalyticsViewChart data={timeseries} />
           </div>
 
           {/* Two-column: Referrers + Geo */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="rounded-lg border bg-card p-4">
-              <h2 className="text-sm font-semibold mb-4">Traffic Sources</h2>
+            <div className="rounded-lg border border-border bg-card p-4">
+              <h2 className="font-mono text-sm font-semibold mb-4">Traffic Sources</h2>
               {referrers.length > 0 ? (
                 <AnalyticsReferrerChart data={referrers} />
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-8">No referrer data</p>
               )}
             </div>
-            <div className="rounded-lg border bg-card p-4">
-              <h2 className="text-sm font-semibold mb-4">Geography</h2>
+            <div className="rounded-lg border border-border bg-card p-4">
+              <h2 className="font-mono text-sm font-semibold mb-4">Geography</h2>
               {geo.length > 0 ? (
                 <AnalyticsGeoChart data={geo} />
               ) : (
