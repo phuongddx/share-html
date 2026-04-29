@@ -64,10 +64,13 @@ UPDATE team_invites SET status = 'expired'
 ALTER TABLE team_events ENABLE ROW LEVEL SECURITY;
 
 -- Members can read their team's events
-CREATE POLICY "Team members can read events" ON team_events FOR SELECT
-  TO authenticated USING (
-    current_user_is_team_member(team_id)
-  );
+DO $$ BEGIN
+  CREATE POLICY "Team members can read events" ON team_events FOR SELECT
+    TO authenticated USING (
+      current_user_is_team_member(team_id)
+    );
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- RED-TEAM FIX: No INSERT policy. Only emit_team_event() (SECURITY DEFINER)
 -- can write events. Prevents any authenticated user from fabricating audit events.

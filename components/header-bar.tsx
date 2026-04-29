@@ -6,6 +6,7 @@ import { Menu } from "lucide-react";
 import { HeaderNav } from "@/components/header-nav";
 import { HeaderMobileDrawer } from "@/components/header-mobile-drawer";
 import { AuthUserMenu } from "@/components/auth-user-menu";
+import { InviteNotificationBell } from "@/components/invite-notification-bell";
 
 export function HeaderBar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -33,8 +34,11 @@ export function HeaderBar() {
           </div>
           {/* Center: desktop nav */}
           <HeaderNav />
-          {/* Right: auth */}
-          <AuthUserMenu />
+          {/* Right: bell + auth */}
+          <div className="flex items-center gap-2">
+            <InviteNotificationBell />
+            <AuthUserMenu />
+          </div>
         </div>
       </header>
       {/* Mobile drawer */}

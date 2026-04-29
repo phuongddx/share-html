@@ -113,6 +113,32 @@ DropItX has completed Phase 1 through Phase 4, delivering core file sharing, ful
 - [x] Split-screen login page redesign with email form and OAuth options
 - [x] Enhanced user authentication components and forms
 
+### Phase 3.6: Team Invite Enhancement — COMPLETE
+**Duration**: April 29, 2026
+
+- [x] Enhanced invite form with role selection and email validation
+- [x] Enhanced invite dialog with invite link generation and team RPC client
+- [x] Bulk invite dialog supporting multiple email addresses
+- [x] Invite accept flow with team join functionality
+- [x] Team RPC client for type-safe server communication
+- [x] Token security utilities for invite token management
+- [x] New UI primitives: dialog, select, textarea, alert components
+- [x] New hooks: use-email-validation, use-team, use-toast
+- [x] Copy-button component for share link copying
+
+### Phase 3.7: Invite Accept UI — COMPLETE
+**Duration**: April 29, 2026
+
+- [x] Decline team invite RPC with email validation and event emission
+- [x] Dashboard invitations API for fetching pending invites
+- [x] Decline API route with error handling and response formatting
+- [x] Header notification bell component with auto-refresh on focus
+- [x] Invite accept UI with decline status handling
+- [x] Auto-signup accept flow for unauthenticated users
+- [x] Fixed isValidRedirect to allow /invite/ paths
+- [x] Accept route JSON parsing improvements
+- [x] Enhanced email guards and error handling in API routes
+
 ### Phase 4: Growth, Engagement & Revenue — COMPLETE
 **Duration**: April 2026
 
@@ -175,6 +201,8 @@ DropItX has completed Phase 1 through Phase 4, delivering core file sharing, ful
 | Test coverage | > 90% |
 | Daily active users | 1,000 |
 | Uploads per day | 500 |
+| Team workspaces created | 100 |
+| Invite acceptance rate | > 80% |
 
 ## Risk Assessment
 

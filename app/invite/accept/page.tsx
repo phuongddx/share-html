@@ -16,11 +16,11 @@ import { InviteStatusCard } from "@/components/invite-status-card";
 import { InviteAcceptForm } from "./invite-accept-form";
 
 interface Props {
-  searchParams: Promise<{ token?: string }>;
+  searchParams: Promise<{ token?: string; auto_accept?: string }>;
 }
 
 export default async function InviteAcceptPage({ searchParams }: Props) {
-  const { token } = await searchParams;
+  const { token, auto_accept } = await searchParams;
 
   if (!token) {
     return (
@@ -60,6 +60,16 @@ export default async function InviteAcceptPage({ searchParams }: Props) {
     );
   }
 
+  // Declined invite
+  if (invite.status === "declined") {
+    return (
+      <InviteStatusCard
+        variant="not_found"
+        message="You already declined this invitation. Contact the team owner for a new invite."
+      />
+    );
+  }
+
   // Revoked invite
   if (invite.status === "revoked") {
     return (
@@ -92,12 +102,15 @@ export default async function InviteAcceptPage({ searchParams }: Props) {
   const teamData = Array.isArray(teamsRaw) ? teamsRaw[0] : null;
 
   if (!user) {
+    const loginUrl = `/auth/login?next=${encodeURIComponent(`/invite/accept?token=${token}&auto_accept=true`)}`;
+    const signupUrl = `/auth/login?mode=signup&next=${encodeURIComponent(`/invite/accept?token=${token}&auto_accept=true`)}`;
     return (
       <InviteStatusCard
         variant="not_logged_in"
         message={`You have been invited to join ${teamData?.name ?? "a team"} as ${invite.role}.`}
         inviteEmail={invite.email}
-        loginUrl={`/auth/login?next=/invite/accept?token=${encodeURIComponent(token)}`}
+        loginUrl={loginUrl}
+        signupUrl={signupUrl}
       />
     );
   }
@@ -111,7 +124,7 @@ export default async function InviteAcceptPage({ searchParams }: Props) {
         variant="email_mismatch"
         inviteEmail={invite.email}
         currentUserEmail={user.email}
-        loginUrl={`/auth/login?next=/invite/accept?token=${encodeURIComponent(token)}`}
+        loginUrl={`/auth/login?next=${encodeURIComponent(`/invite/accept?token=${token}`)}`}
       />
     );
   }
@@ -123,7 +136,7 @@ export default async function InviteAcceptPage({ searchParams }: Props) {
       message={`You have been invited to join ${teamData?.name ?? "the team"} as ${invite.role}.`}
       inviteEmail={invite.email}
     >
-      <InviteAcceptForm teamSlug={teamData?.slug ?? ""} token={token} />
+      <InviteAcceptForm teamSlug={teamData?.slug ?? ""} token={token} autoAccept={auto_accept === "true"} />
     </InviteStatusCard>
   );
 }

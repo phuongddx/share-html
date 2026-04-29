@@ -15,6 +15,7 @@ interface InviteStatusCardProps {
   inviteEmail?: string;
   currentUserEmail?: string;
   loginUrl?: string;
+  signupUrl?: string;
   children?: React.ReactNode;
 }
 
@@ -61,6 +62,7 @@ export function InviteStatusCard({
   inviteEmail,
   currentUserEmail,
   loginUrl,
+  signupUrl,
   children,
 }: InviteStatusCardProps) {
   const config = VARIANT_CONFIG[variant];
@@ -92,13 +94,29 @@ export function InviteStatusCard({
             {subMessage}
           </p>
         )}
-        {loginUrl && (
+        {loginUrl && !signupUrl && (
           <a
             href={loginUrl}
             className="mt-6 inline-block rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             Log In to Accept
           </a>
+        )}
+        {loginUrl && signupUrl && (
+          <div className="mt-6 flex flex-col gap-2">
+            <a
+              href={loginUrl}
+              className="inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              Log In to Accept
+            </a>
+            <a
+              href={signupUrl}
+              className="inline-block rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+            >
+              Sign Up to Accept
+            </a>
+          </div>
         )}
         {children}
       </div>

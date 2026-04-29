@@ -2,6 +2,74 @@
 
 All notable changes to DropItX.
 
+## [v2.2.1] — 2026-04-29
+
+### Added
+- **Team Invite Accept UI**: Complete invite acceptance system with notification bell and decline functionality
+- **Decline Team Invite RPC**: Secure decline functionality with email validation and event emission
+- **Dashboard Invitations API**: GET endpoint for fetching pending invitations with team and inviter data
+- **Decline API Route**: POST endpoint for declining team invitations with error handling
+- **Notification Bell Component**: Header-mounted popover showing pending invites with accept/decline actions
+- **Auto-Signup Accept Flow**: Unauthenticated users can sign up and automatically accept invitations
+- **Invite Accept UI Enhancements**: Fixed status handling for declined invitations, redirect path validation
+- **Bell Auto-Refresh**: Manual revalidation on window focus for real-time updates
+- **Toast Notifications**: Instant feedback for accept/decline actions
+
+### Team Invite Architecture
+- **Single Invite**: Role-based invite with email validation and server-side verification
+- **Bulk Invite**: Batch processing with progress tracking and error handling
+- **Invite Resend**: Secure token-based resend functionality with rate limiting
+- **Accept Flow**: Secure token-based acceptance with automatic team membership
+- **Decline Flow**: Secure token-based decline with status updates and event tracking
+- **RPC Client**: Type-safe server communication for team operations
+- **Token Security**: Secure invite token generation, validation, and management
+- **UI System**: Header notification bell with auto-refresh for pending invites
+
+### Infrastructure Updates
+- **New API Routes**: `/api/dashboard/invitations` and `/api/invite/decline`
+- **New SQL Migration**: `decline_team_invite` RPC with email validation and event emission
+- **Enhanced Components**: `InviteNotificationBell` with popover and invite management
+- **Type Safety**: Enhanced TypeScript interfaces for invite system components
+- **Error Handling**: Comprehensive error handling for invite operations and API routes
+
+---
+
+## [v2.2.0] — 2026-04-29
+
+### Added
+- **Enhanced Team Invite System**: Complete invite management with role selection and email validation
+- **Team Invite Form**: Enhanced form with role selection, email validation, and team selection
+- **Enhanced Invite Dialog**: Advanced dialog with invite link generation and team RPC client integration
+- **Bulk Invite Dialog**: Support for inviting multiple team members at once with progress tracking
+- **Invite Accept Flow**: Complete flow from invite acceptance to team membership
+- **Team RPC Client**: Type-safe server communication for team operations using lib/team-rpc.ts
+- **Token Security Utilities**: Secure invite token management with lib/token-security.ts
+- **New UI Primitives**: Dialog, select, textarea, alert, and skeleton components
+- **New Hooks**: use-email-validation for real-time email validation, use-team for team state management, use-toast for notifications
+- **Copy-Button Component**: Enhanced copy functionality for share links and invite URLs
+
+### Team Invite Architecture
+- **Single Invite**: Role-based invite with email validation and server-side verification
+- **Bulk Invite**: Batch processing with progress tracking and error handling
+- **Invite Resend**: Secure token-based resend functionality with rate limiting
+- **Accept Flow**: Secure token-based acceptance with automatic team membership
+- **RPC Client**: Type-safe server communication for team operations
+- **Token Security**: Secure invite token generation, validation, and management
+
+### Security Enhancements
+- **Invite Token Validation**: Server-side token validation with expiration checking
+- **Rate Limiting**: Enhanced rate limiting for invite operations (bulk/resend)
+- **Email Validation**: Real-time email format validation with duplicate checking
+- **Access Control**: Role-based access control for team operations
+
+### Infrastructure Updates
+- **New API Routes**: `/api/dashboard/teams/[slug]/invites/bulk` and `/api/dashboard/teams/[slug]/invites/[id]/resend`
+- **Enhanced Components**: New team-specific components with improved UX
+- **Type Safety**: Enhanced TypeScript interfaces for team invite system
+- **Error Handling**: Comprehensive error handling for invite operations
+
+---
+
 ## [v2.1.0] — 2026-04-29
 
 ### Added

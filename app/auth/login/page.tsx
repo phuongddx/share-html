@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 
 function isValidRedirect(path: string | null): boolean {
   if (!path) return false;
-  return path.startsWith("/s/") && !path.includes("//") && !path.includes("\\");
+  return (path.startsWith("/s/") || path.startsWith("/invite/")) && !path.includes("//") && !path.includes("\\");
 }
 
 function LoginContent() {
