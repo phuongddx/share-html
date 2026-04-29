@@ -1,127 +1,98 @@
-"use client";
+/**
+ * Team members page — server component.
+ * Fetches members and invites server-side, no useEffect data fetching.
+ */
 
-import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { createClient } from "@/utils/supabase/server";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Users, ArrowLeft, UserPlus, Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import { createClient } from "@/utils/supabase/client";
+import { Users, ArrowLeft } from "lucide-react";
 import { TeamMemberRow } from "@/components/team-member-row";
-import { InviteMemberDialog } from "@/components/invite-member-dialog";
+import { MembersPageClient } from "@/components/members-page-client";
 import type { TeamRole, TeamInvite } from "@/types/team";
 
-interface MemberData {
+interface MemberRow {
   user_id: string;
   role: TeamRole;
   joined_at: string;
-  display_name?: string;
-  avatar_url?: string;
+  display_name?: string | null;
+  avatar_url?: string | null;
 }
 
-interface TeamData {
-  id: string;
-  name: string;
-  slug: string;
-  plan: string;
-}
-
-export default function TeamMembersPage({
-  params,
-}: {
+interface Props {
   params: Promise<{ slug: string }>;
-}) {
-  const [slug, setSlug] = useState<string>("");
-  const [team, setTeam] = useState<TeamData | null>(null);
-  const [currentRole, setCurrentRole] = useState<TeamRole>("viewer");
-  const [currentUserId, setCurrentUserId] = useState<string>("");
-  const [members, setMembers] = useState<MemberData[]>([]);
-  const [invites, setInvites] = useState<TeamInvite[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [inviteOpen, setInviteOpen] = useState(false);
-  const fetchedRef = useRef<string>("");
+}
 
-  // Extract slug from params
-  useEffect(() => {
-    params.then((p) => setSlug(p.slug));
-  }, [params]);
+async function getTeamData(slug: string) {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/auth/login");
 
-  // Fetch all team data when slug changes
-  useEffect(() => {
-    if (!slug || fetchedRef.current === slug) return;
-    fetchedRef.current = slug;
+  const { data: team, error: teamError } = await supabase
+    .from("teams")
+    .select("id, name, slug, plan, created_by")
+    .eq("slug", slug)
+    .single();
 
-    let cancelled = false;
-    (async () => {
-      try {
-        // Get current auth user
-        const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) setCurrentUserId(user.id);
+  if (!team || teamError) redirect("/dashboard/teams");
 
-        const [teamRes, membersRes, invitesRes] = await Promise.all([
-          fetch(`/api/dashboard/teams/${slug}`),
-          fetch(`/api/dashboard/teams/${slug}/members`),
-          fetch(`/api/dashboard/teams/${slug}/invites`),
-        ]);
+  const { data: membership } = await supabase
+    .from("team_members")
+    .select("role")
+    .eq("team_id", team.id)
+    .eq("user_id", user.id)
+    .single();
 
-        if (cancelled) return;
-        if (!teamRes.ok) throw new Error("Failed to load team");
-        const teamData = await teamRes.json();
-        setTeam(teamData);
+  if (!membership) redirect("/dashboard/teams");
 
-        if (membersRes.ok) {
-          const membersData = await membersRes.json();
-          const memberList: MemberData[] = membersData.members ?? [];
-          setMembers(memberList);
-          if (user) {
-            const myMember = memberList.find((m) => m.user_id === user.id);
-            if (myMember) setCurrentRole(myMember.role);
-          }
-        }
+  const [membersRes, invitesRes] = await Promise.all([
+    supabase
+      .from("team_members")
+      .select("user_id, role, joined_at, user_profiles(display_name, avatar_url)")
+      .eq("team_id", team.id)
+      .order("joined_at", { ascending: true }),
+    supabase
+      .from("team_invites")
+      .select("id, email, role, status, expires_at, created_at, invited_by")
+      .eq("team_id", team.id)
+      .order("created_at", { ascending: false }),
+  ]);
 
-        if (invitesRes.ok) {
-          const invitesData = await invitesRes.json();
-          setInvites(
-            (invitesData.invites ?? []).filter(
-              (inv: TeamInvite) => !inv.accepted_at,
-            ),
-          );
-        }
-      } catch {
-        if (!cancelled) toast.error("Failed to load team data");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
+  const members = (membersRes.data ?? []).map((m) => {
+    const profile = Array.isArray(m.user_profiles)
+      ? m.user_profiles[0]
+      : m.user_profiles;
+    return {
+      user_id: m.user_id,
+      role: m.role as TeamRole,
+      joined_at: m.joined_at,
+      display_name: (profile as { display_name: string | null } | null)
+        ?.display_name,
+      avatar_url: (profile as { avatar_url: string | null } | null)
+        ?.avatar_url,
+    };
+  });
 
-    return () => { cancelled = true; };
-  }, [slug]);
+  const invites = invitesRes.data ?? [];
 
-  /** Reset fetched ref and trigger re-fetch on invite/member changes. */
-  function handleRefresh() {
-    fetchedRef.current = "";
-    setLoading(true);
-  }
+  return {
+    team,
+    user,
+    userRole: membership.role as TeamRole,
+    members: members as MemberRow[],
+    invites: invites as TeamInvite[],
+  };
+}
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12 text-muted-foreground">
-        <Loader2 className="size-5 animate-spin mr-2" />
-        Loading...
-      </div>
-    );
-  }
-
-  if (!team) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>Team not found.</p>
-      </div>
-    );
-  }
-
-  const canInvite = currentRole === "owner" || currentRole === "editor";
+export default async function TeamMembersPage({ params }: Props) {
+  const { slug } = await params;
+  const { team, user, userRole, members, invites } = await getTeamData(slug);
+  const canInvite = userRole === "owner" || userRole === "editor";
 
   return (
     <div className="space-y-6">
@@ -136,15 +107,15 @@ export default function TeamMembersPage({
           </Link>
           <h1 className="font-mono text-lg font-semibold">Members</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {team.name} · {members.length} member{members.length !== 1 ? "s" : ""}
+            {team.name} &middot; {members.length} member
+            {members.length !== 1 ? "s" : ""}
           </p>
         </div>
-        {canInvite && (
-          <Button size="sm" onClick={() => setInviteOpen(true)}>
-            <UserPlus className="size-4" />
-            Invite
-          </Button>
-        )}
+        <MembersPageClient
+          teamSlug={slug}
+          canInvite={canInvite}
+          pendingInvites={invites.filter((i) => i.status === "pending")}
+        />
       </div>
 
       <Card className="border border-border rounded-lg">
@@ -163,10 +134,9 @@ export default function TeamMembersPage({
                 displayName={m.display_name ?? null}
                 avatarUrl={m.avatar_url ?? null}
                 role={m.role}
-                viewerRole={currentRole}
-                isSelf={m.user_id === currentUserId}
+                viewerRole={userRole}
+                isSelf={m.user_id === user.id}
                 teamSlug={slug}
-                onRefresh={handleRefresh}
               />
             ))}
           </div>
@@ -177,14 +147,6 @@ export default function TeamMembersPage({
           )}
         </CardContent>
       </Card>
-
-      <InviteMemberDialog
-        teamSlug={slug}
-        open={inviteOpen}
-        onClose={() => setInviteOpen(false)}
-        onInviteCreated={handleRefresh}
-        pendingInvites={invites}
-      />
     </div>
   );
 }

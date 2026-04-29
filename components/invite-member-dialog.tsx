@@ -1,18 +1,24 @@
 "use client";
 
-import { useState } from "react";
+/**
+ * Invite member dialog — creates invites via API, shows pending invites.
+ * Uses router.refresh() for data invalidation after invite creation/cancellation.
+ */
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { X, Loader2, Copy, Mail, Clock } from "lucide-react";
 import { toast } from "sonner";
+import { isValidEmail } from "@/lib/validation";
 import type { TeamRole, TeamInvite } from "@/types/team";
 
 interface InviteMemberDialogProps {
   teamSlug: string;
   open: boolean;
   onClose: () => void;
-  onInviteCreated: () => void;
   /** Existing pending invites to display. */
   pendingInvites: TeamInvite[];
 }
@@ -29,21 +35,30 @@ export function InviteMemberDialog({
   teamSlug,
   open,
   onClose,
-  onInviteCreated,
   pendingInvites,
 }: InviteMemberDialogProps) {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<TeamRole>("viewer");
   const [submitting, setSubmitting] = useState(false);
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [rateLimited, setRateLimited] = useState(false);
+
+  // Reset state when dialog opens
+  useEffect(() => {
+    if (open) {
+      setRateLimited(false);
+      setInviteUrl(null);
+    }
+  }, [open]);
 
   if (!open) return null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = email.trim().toLowerCase();
-    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+    if (!trimmed || !isValidEmail(trimmed)) {
       toast.error("Please enter a valid email address");
       return;
     }
@@ -59,12 +74,20 @@ export function InviteMemberDialog({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to create invite");
 
+      if (data.rate_limited) {
+        setRateLimited(true);
+        toast.error("Rate limit reached. Try again later.");
+        return;
+      }
+
       setInviteUrl(data.invite_url);
       toast.success("Invite created");
       setEmail("");
-      onInviteCreated();
+      router.refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create invite");
+      toast.error(
+        err instanceof Error ? err.message : "Failed to create invite",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -79,7 +102,7 @@ export function InviteMemberDialog({
       );
       if (!res.ok) throw new Error("Failed to cancel invite");
       toast.success("Invite cancelled");
-      onInviteCreated();
+      router.refresh();
     } catch {
       toast.error("Failed to cancel invite");
     } finally {
@@ -145,6 +168,18 @@ export function InviteMemberDialog({
             </Button>
           </div>
         </form>
+
+        {/* Rate limit warning */}
+        {rateLimited && (
+          <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3">
+            <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">
+              Rate limit reached
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Too many invites sent recently. Please wait before creating more.
+            </p>
+          </div>
+        )}
 
         {/* Generated invite link */}
         {inviteUrl && (

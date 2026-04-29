@@ -4,8 +4,11 @@ import { createClient } from "@/utils/supabase/server";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, FileText, Eye, Settings, UserPlus, ArrowLeft } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Users, FileText, Eye, Settings, UserPlus, ArrowLeft, Activity } from "lucide-react";
 import { TeamShareCard } from "@/components/team-share-card";
+import { TeamActivityFeed } from "@/components/team-activity-feed";
+import type { TeamEvent } from "@/types/team-event";
 
 const ROLE_COLORS: Record<string, "default" | "secondary" | "outline"> = {
   owner: "default",
@@ -68,6 +71,14 @@ export default async function TeamOverviewPage({
     .from("team_members")
     .select("*", { count: "exact", head: true })
     .eq("team_id", team.id);
+
+  // Fetch recent activity events
+  const { data: events } = await supabase
+    .from("team_events")
+    .select("id, event_type, actor_id, target_user_id, metadata, created_at")
+    .eq("team_id", team.id)
+    .order("created_at", { ascending: false })
+    .limit(10);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const totalViews = validShares.reduce((sum: number, r: any) => sum + (r.share?.view_count ?? 0), 0);
@@ -138,6 +149,21 @@ export default async function TeamOverviewPage({
           <p className="text-2xl font-bold mt-1">{memberCount ?? 0}</p>
         </div>
       </div>
+
+      {/* Recent Activity */}
+      {events && events.length > 0 && (
+        <Card className="border border-border rounded-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="size-5" />
+              Recent Activity
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TeamActivityFeed events={events as TeamEvent[]} />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Shares list */}
       {validShares.length === 0 ? (

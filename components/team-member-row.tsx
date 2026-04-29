@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Loader2, ChevronDown } from "lucide-react";
@@ -19,8 +20,6 @@ interface TeamMemberRowProps {
   /** Whether this row is the current user. */
   isSelf: boolean;
   teamSlug: string;
-  /** Called after successful role change or removal. */
-  onRefresh: () => void;
 }
 
 const ROLE_COLORS: Record<TeamRole, "default" | "secondary" | "outline"> = {
@@ -38,8 +37,8 @@ export function TeamMemberRow({
   viewerRole,
   isSelf,
   teamSlug,
-  onRefresh,
 }: TeamMemberRowProps) {
+  const router = useRouter();
   const [changingRole, setChangingRole] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -63,7 +62,7 @@ export function TeamMemberRow({
         throw new Error(data.error || "Failed to update role");
       }
       toast.success(`Role updated to ${newRole}`);
-      onRefresh();
+      router.refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to update role");
     } finally {
@@ -86,7 +85,7 @@ export function TeamMemberRow({
         throw new Error(data.error || "Failed to remove member");
       }
       toast.success(isSelf ? "You left the team" : `Removed ${display}`);
-      onRefresh();
+      router.refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to remove member");
     } finally {

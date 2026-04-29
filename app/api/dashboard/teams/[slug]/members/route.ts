@@ -1,7 +1,7 @@
 /**
  * GET    /api/dashboard/teams/[slug]/members — List team members with profiles.
- * PATCH  /api/dashboard/teams/[slug]/members — Update member role (owner only).
- * DELETE /api/dashboard/teams/[slug]/members — Remove member or leave team.
+ * PATCH  /api/dashboard/teams/[slug]/members — Update member role via RPC (owner only).
+ * DELETE /api/dashboard/teams/[slug]/members — Remove member via RPC or leave team.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -52,7 +52,7 @@ export async function GET(
   }
 }
 
-/** PATCH — Update a member's role (owner only; DB trigger prevents last-owner demotion). */
+/** PATCH — Update a member's role via RPC (owner only). */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
@@ -73,35 +73,30 @@ export async function PATCH(
       return NextResponse.json({ error: "Invalid role (must be owner, editor, or viewer)" }, { status: 400 });
     }
 
-    // Prevent self-demotion (owner demoting themselves — DB trigger catches last-owner, app catches all)
-    if (user_id === team.created_by) {
-      return NextResponse.json({ error: "Cannot change the role of the team creator" }, { status: 403 });
-    }
-
-    const { data: updated, error } = await supabase
-      .from("team_members")
-      .update({ role })
-      .eq("team_id", team.id)
-      .eq("user_id", user_id)
-      .select("user_id, role")
-      .single();
+    const { error } = await supabase.rpc("change_member_role", {
+      p_team_id: team.id,
+      p_user_id: user_id,
+      p_new_role: role,
+    });
 
     if (error) {
-      console.error("Role update failed:", error.message);
-      return NextResponse.json({ error: "Failed to update member role" }, { status: 500 });
-    }
-    if (!updated) {
-      return NextResponse.json({ error: "Member not found" }, { status: 404 });
+      const msg = error.message.toLowerCase();
+      const status = msg.includes("not found") ? 404
+        : msg.includes("only") ? 403
+        : msg.includes("last owner") || msg.includes("cannot") ? 403
+        : 500;
+      console.error("RPC change_member_role failed:", error.message);
+      return NextResponse.json({ error: error.message }, { status });
     }
 
-    return NextResponse.json(updated);
+    return NextResponse.json({ user_id, role });
   } catch (err) {
     console.error("PATCH /api/dashboard/teams/[slug]/members error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
-/** DELETE — Remove a member (owner) or leave team (self). */
+/** DELETE — Remove a member via RPC (owner can remove anyone; non-owners leave). */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
@@ -120,20 +115,24 @@ export async function DELETE(
     }
 
     // Owner can remove anyone; non-owners can only remove themselves (leave)
-    if (targetUserId !== team.created_by && userRole !== "owner" && targetUserId !== (await supabase.auth.getUser()).data.user?.id) {
+    const currentUserId = (await supabase.auth.getUser()).data.user?.id;
+    if (targetUserId !== currentUserId && userRole !== "owner") {
       return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 });
     }
 
-    // DB trigger prevents removing the last owner
-    const { error } = await supabase
-      .from("team_members")
-      .delete()
-      .eq("team_id", team.id)
-      .eq("user_id", targetUserId);
+    const { error } = await supabase.rpc("remove_team_member", {
+      p_team_id: team.id,
+      p_user_id: targetUserId,
+    });
 
     if (error) {
-      console.error("Member removal failed:", error.message);
-      return NextResponse.json({ error: "Failed to remove member" }, { status: 500 });
+      const msg = error.message.toLowerCase();
+      const status = msg.includes("not found") ? 404
+        : msg.includes("only") ? 403
+        : msg.includes("last owner") || msg.includes("cannot") ? 403
+        : 500;
+      console.error("RPC remove_team_member failed:", error.message);
+      return NextResponse.json({ error: error.message }, { status });
     }
 
     return new NextResponse(null, { status: 204 });

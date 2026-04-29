@@ -3,26 +3,20 @@
 /**
  * Client component for the invite acceptance action.
  * POSTs to the accept API endpoint and redirects to the team dashboard.
+ * Only needs teamSlug (for redirect) and token (for the API call).
  */
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 interface InviteAcceptFormProps {
-  inviteId: string;
-  teamId: string;
-  teamName: string;
   teamSlug: string;
-  role: string;
   token: string;
 }
 
-export function InviteAcceptForm({
-  teamName,
-  teamSlug,
-  role,
-  token,
-}: InviteAcceptFormProps) {
+export function InviteAcceptForm({ teamSlug, token }: InviteAcceptFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,26 +47,12 @@ export function InviteAcceptForm({
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="max-w-sm rounded-lg border border-border bg-card p-8 text-center">
-        <h1 className="text-xl font-semibold">Accept Team Invite</h1>
-        <p className="mt-2 text-muted-foreground">
-          You have been invited to join <strong>{teamName}</strong> as{" "}
-          <strong>{role}</strong>.
-        </p>
-
-        {error && (
-          <p className="mt-4 text-sm text-destructive">{error}</p>
-        )}
-
-        <button
-          onClick={handleAccept}
-          disabled={loading}
-          className="mt-6 inline-block rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? "Accepting..." : "Accept Invite"}
-        </button>
-      </div>
+    <div className="mt-6">
+      {error && <p className="text-sm text-destructive mb-3">{error}</p>}
+      <Button onClick={handleAccept} disabled={loading} className="w-full">
+        {loading ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
+        {loading ? "Accepting..." : "Accept Invite"}
+      </Button>
     </div>
   );
 }

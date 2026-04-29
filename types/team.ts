@@ -1,3 +1,5 @@
+import type { TeamInviteStatus } from "@/types/team-event";
+
 export type TeamRole = "owner" | "editor" | "viewer";
 export type TeamPlan = "free" | "pro";
 
@@ -30,6 +32,8 @@ export interface TeamInvite {
   role: TeamRole;
   token: string;
   expires_at: string;
+  /** Invite lifecycle status */
+  status: TeamInviteStatus;
   accepted_at: string | null;
   invited_by: string;
   created_at: string;
