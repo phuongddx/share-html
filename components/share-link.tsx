@@ -39,7 +39,7 @@ export function ShareLink({ result }: ShareLinkProps) {
     <Card className="animate-slide-up">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
-          <Check className="size-4 text-green-600 dark:text-green-400" />
+          <Check className="size-4 text-success" />
           File shared successfully
         </CardTitle>
         <CardDescription>{result.filename}</CardDescription>
@@ -81,15 +81,15 @@ export function ShareLink({ result }: ShareLinkProps) {
 
         {/* Inline copied feedback */}
         {copied && (
-          <p className="text-xs text-green-600 dark:text-green-400 animate-fade-in">
+          <p className="text-xs text-success animate-fade-in">
             Link copied to clipboard
           </p>
         )}
 
         {/* Delete link */}
         {deleteShown && (
-          <div className="rounded-lg border border-amber-200/60 bg-amber-50/50 p-3 dark:border-amber-800/30 dark:bg-amber-950/20 transition-colors">
-            <div className="mb-2 flex items-center gap-2 text-sm font-medium text-amber-700 dark:text-amber-400">
+          <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 transition-colors">
+            <div className="mb-2 flex items-center gap-2 text-sm font-medium text-destructive">
               <AlertTriangle className="size-4 shrink-0" />
               Save this delete link — it will not be shown again
             </div>
@@ -123,7 +123,7 @@ export function ShareLink({ result }: ShareLinkProps) {
               type="button"
               variant="ghost"
               size="xs"
-              className="mt-2 text-amber-600 dark:text-amber-400"
+              className="mt-2 text-destructive"
               onClick={() => setDeleteShown(false)}
             >
               <Trash2 className="size-3" />
@@ -131,13 +131,13 @@ export function ShareLink({ result }: ShareLinkProps) {
             </Button>
           </div>
         )}
-        {/* Password protection — available for anonymous uploads via delete_token */}
+        {/* Password protection */}
         {result.deleteToken && (
-          <div className="rounded-lg border p-3 flex flex-col gap-2">
+          <div className="rounded-md border border-border p-3 flex flex-col gap-2">
             <button
               type="button"
               onClick={() => setPasswordOpen((o) => !o)}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full text-left"
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 w-full text-left"
             >
               <Lock className="size-4 shrink-0" />
               {hasPassword ? "Password set — click to change" : "Add password protection"}

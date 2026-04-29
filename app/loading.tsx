@@ -4,7 +4,7 @@ export default function RootLoading() {
       <div className="flex flex-col items-center gap-4">
         <div className="relative">
           <div
-            className="size-8 animate-spin rounded-full border-2 border-muted"
+            className="size-8 animate-spin rounded-md border-2 border-muted"
             style={{ borderTopColor: "var(--primary)" }}
             role="status"
             aria-label="Loading"

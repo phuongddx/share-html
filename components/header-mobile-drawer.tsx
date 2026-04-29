@@ -69,7 +69,7 @@ export function HeaderMobileDrawer({
         role="dialog"
         aria-modal="true"
         aria-label="Navigation menu"
-        className={`fixed inset-y-0 left-0 z-[60] w-64 bg-card border-r shadow-lg transform transition-transform duration-200 ease-in-out md:hidden
+        className={`fixed inset-y-0 left-0 z-[60] w-64 bg-background border-r border-border transform transition-transform duration-200 ease-out md:hidden
           ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="flex flex-col h-full p-4">

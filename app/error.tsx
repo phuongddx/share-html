@@ -14,7 +14,7 @@ export default function GlobalError({ reset }: GlobalErrorProps) {
     <div className="flex flex-1 items-center justify-center p-4">
       <Card className="w-full max-w-md text-center animate-fade-in">
         <CardHeader className="items-center gap-3 pb-2">
-          <div className="size-14 rounded-full bg-destructive/10 flex items-center justify-center">
+          <div className="size-14 rounded-lg bg-destructive/10 flex items-center justify-center">
             <AlertTriangle className="size-7 text-destructive" />
           </div>
           <CardTitle className="text-xl">Something went wrong</CardTitle>

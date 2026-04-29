@@ -74,8 +74,8 @@ export default function SearchPage() {
 
   return (
     <div className="flex flex-1 flex-col items-center bg-background">
-      <main className="flex w-full max-w-2xl flex-col gap-6 px-4 py-12">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+      <main className="flex w-full max-w-[1200px] flex-col gap-6 px-6 py-8">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground font-mono">
           Search
         </h1>
 

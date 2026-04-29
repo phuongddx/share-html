@@ -12,12 +12,12 @@ export function HeaderBar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-sm">
-        <div className="flex items-center justify-between h-12 px-4 max-w-7xl mx-auto">
+      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm">
+        <div className="flex items-center justify-between h-14 px-6 max-w-[1200px] mx-auto">
           {/* Left: hamburger (mobile) + logo */}
           <div className="flex items-center gap-3">
             <button
-              className="md:hidden p-1 hover:bg-muted rounded-md"
+              className="md:hidden p-1 hover:bg-muted rounded-md text-foreground"
               onClick={() => setDrawerOpen(true)}
               aria-label="Open navigation menu"
             >
@@ -27,10 +27,8 @@ export function HeaderBar() {
               href="/"
               className="font-mono text-lg font-bold tracking-tight"
             >
-              [x]{" "}
-              <span className="text-violet-600 dark:text-violet-400">
-                dropitx
-              </span>
+              <span className="text-muted-foreground">&gt;</span>{" "}
+              <span className="text-primary">dropitx</span>
             </Link>
           </div>
           {/* Center: desktop nav */}

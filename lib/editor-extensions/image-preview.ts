@@ -46,7 +46,7 @@ class ImageWidget extends WidgetType {
     img.style.margin = "4px 0";
     img.onerror = () => {
       container.innerHTML =
-        '<span style="color:#999;font-size:12px">[broken image]</span>';
+        '<span style="color:var(--muted-foreground);font-size:12px">[broken image]</span>';
     };
 
     container.appendChild(img);

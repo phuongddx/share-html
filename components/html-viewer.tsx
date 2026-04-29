@@ -57,7 +57,7 @@ export function HtmlViewer({ htmlContent }: HtmlViewerProps) {
       srcDoc={safeContent}
       sandbox="allow-scripts"
       title="Shared HTML content"
-      className="h-[80vh] w-full rounded-lg border shadow-sm"
+      className="h-[80vh] w-full rounded-lg border border-border"
       scrolling="auto"
     />
   );

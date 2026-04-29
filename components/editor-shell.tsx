@@ -171,14 +171,14 @@ export function EditorShell() {
 
   if (!mounted) {
     return (
-      <div className="flex h-[calc(100vh-3rem)] items-center justify-center">
-        <p className="text-muted-foreground">Loading editor...</p>
+      <div className="flex h-[calc(100vh-3rem)] items-center justify-center bg-background">
+        <p className="text-muted-foreground font-mono text-sm">Loading editor...</p>
       </div>
     );
   }
 
   return (
-    <div className="flex h-[calc(100vh-3rem)] flex-col">
+    <div className="flex h-[calc(100vh-3rem)] flex-col bg-background">
       <EditorToolbar
         editorRef={editorViewRef}
         theme={effectiveTheme}
@@ -186,12 +186,12 @@ export function EditorShell() {
       />
 
       {/* Mobile tab bar */}
-      <div className="flex border-b md:hidden">
+      <div className="flex border-b border-border md:hidden">
         <button
           onClick={() => setTab("write")}
-          className={`flex-1 py-2 text-center text-sm font-medium transition-colors ${
+          className={`flex-1 py-2 text-center text-sm font-medium transition-colors duration-200 ${
             tab === "write"
-              ? "border-b-2 border-violet-600 text-foreground"
+              ? "border-b-2 border-primary text-foreground"
               : "text-muted-foreground"
           }`}
         >
@@ -199,9 +199,9 @@ export function EditorShell() {
         </button>
         <button
           onClick={() => setTab("preview")}
-          className={`flex-1 py-2 text-center text-sm font-medium transition-colors ${
+          className={`flex-1 py-2 text-center text-sm font-medium transition-colors duration-200 ${
             tab === "preview"
-              ? "border-b-2 border-violet-600 text-foreground"
+              ? "border-b-2 border-primary text-foreground"
               : "text-muted-foreground"
           }`}
         >
@@ -212,7 +212,7 @@ export function EditorShell() {
       {/* Editor + Preview layout */}
       <div className="flex flex-1 overflow-hidden">
         <div
-          className={`flex-1 overflow-hidden ${
+          className={`flex-1 overflow-hidden bg-background ${
             tab !== "write" ? "hidden md:block" : ""
           }`}
         >
@@ -226,7 +226,7 @@ export function EditorShell() {
         </div>
 
         <div
-          className={`flex-1 overflow-hidden border-l ${
+          className={`flex-1 overflow-hidden border-l border-border bg-background ${
             tab !== "preview" ? "hidden md:block" : ""
           }`}
         >

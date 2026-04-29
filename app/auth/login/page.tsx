@@ -11,12 +11,12 @@ function isValidRedirect(path: string | null): boolean {
 }
 
 export default function LoginPage() {
-  const supabase = createClient();
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next");
   const isShareRedirect = isValidRedirect(nextPath);
 
   const login = async (provider: "google" | "github") => {
+    const supabase = createClient();
     const callbackUrl = new URL("/auth/callback", window.location.origin);
     if (isShareRedirect && nextPath) {
       callbackUrl.searchParams.set("next", nextPath);
@@ -29,9 +29,12 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="w-full max-w-sm space-y-6 rounded-xl border bg-card p-8 shadow-sm">
+      <div className="w-full max-w-sm space-y-6 rounded-lg border border-border bg-card p-8">
         <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold">Sign in</h1>
+          <h1 className="font-mono text-2xl font-semibold">
+            <span className="text-muted-foreground">&gt;</span>{" "}
+            <span className="text-primary">sign in</span>
+          </h1>
           <p className="text-sm text-muted-foreground">
             {isShareRedirect
               ? "Sign in to view shared content"

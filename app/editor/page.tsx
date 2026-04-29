@@ -7,5 +7,9 @@ export const metadata: Metadata = {
 };
 
 export default function EditorPage() {
-  return <EditorShell />;
+  return (
+    <div className="mx-auto max-w-[1400px]">
+      <EditorShell />
+    </div>
+  );
 }

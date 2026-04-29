@@ -61,9 +61,7 @@ export function SearchBar({ initialValue = "", compact = false }: SearchBarProps
   }, []);
 
   return (
-    <div
-      className={`relative ${compact ? "max-w-md" : "max-w-xl"} mx-auto w-full transition-shadow duration-200 focus-within:shadow-[0_0_0_2px_rgba(37,99,235,0.15)] focus-within:rounded-lg`}
-    >
+    <div className={`relative ${compact ? "max-w-md" : "max-w-xl"} mx-auto w-full`}>
       <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
 
       <Input
@@ -73,7 +71,7 @@ export function SearchBar({ initialValue = "", compact = false }: SearchBarProps
         onKeyDown={handleKeyDown}
         placeholder="Search shared files..."
         aria-label="Search shared files"
-        className={compact ? "h-9 pl-9 text-sm" : "h-11 pl-9 text-base"}
+        className={compact ? "h-10 pl-9 text-sm" : "h-11 pl-9 text-base"}
       />
 
       {value.length > 0 && (
@@ -81,7 +79,7 @@ export function SearchBar({ initialValue = "", compact = false }: SearchBarProps
           type="button"
           onClick={handleClear}
           aria-label="Clear search"
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-150 cursor-pointer"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-200 cursor-pointer"
         >
           <X className="size-4" />
         </button>

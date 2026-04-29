@@ -161,7 +161,7 @@ export default function TeamSettingsPage({
   }
 
   return (
-    <div className="space-y-6 max-w-lg">
+    <div className="space-y-6 max-w-[680px]">
       <div>
         <Link
           href={`/dashboard/teams/${slug}`}
@@ -192,6 +192,7 @@ export default function TeamSettingsPage({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 maxLength={100}
+                className="h-10 rounded-md"
               />
             </div>
             <div className="space-y-1.5">
@@ -205,6 +206,7 @@ export default function TeamSettingsPage({
                   setEditSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))
                 }
                 maxLength={50}
+                className="h-10 rounded-md"
               />
               <p className="text-xs text-muted-foreground">
                 Changing the slug will change the team URL.
@@ -215,7 +217,7 @@ export default function TeamSettingsPage({
               <Badge variant="secondary">{team.plan}</Badge>
             </div>
             <div className="flex gap-2 justify-end">
-              <Button type="submit" disabled={saving}>
+              <Button type="submit" disabled={saving} className="rounded-md">
                 {saving ? <Loader2 className="size-4 animate-spin" /> : "Save Changes"}
               </Button>
             </div>

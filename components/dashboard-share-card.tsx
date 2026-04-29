@@ -49,9 +49,9 @@ export function DashboardShareCard({ share }: { share: ShareWithPasswordFlag }) 
         <div className="flex items-center gap-4 p-4">
           <div className="shrink-0">
             {isMarkdown ? (
-              <FileText className="size-5 text-violet-500" />
+              <FileText className="size-5 text-primary" />
             ) : (
-              <FileCode className="size-5 text-violet-500" />
+              <FileCode className="size-5 text-primary" />
             )}
           </div>
 

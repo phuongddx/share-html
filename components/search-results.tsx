@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, FileText } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { SearchResult } from "@/types/share";
 
 interface SearchResultsProps {
@@ -27,44 +28,23 @@ function relativeTime(iso: string): string {
 
 function truncate(text: string, max: number): string {
   if (text.length <= max) return text;
-  return text.slice(0, max).trimEnd() + "\u2026";
+  return text.slice(0, max).trimEnd() + "…";
 }
 
 function getFileExtension(filename: string) {
   const ext = filename.split(".").pop()?.toLowerCase();
-  if (ext === "md") return { icon: <FileText className="size-4 text-violet-500" />, label: "MD" };
-  return { icon: <FileText className="size-4 text-violet-500" />, label: "HTML" };
+  if (ext === "md") return { icon: <FileText className="size-4 text-primary" />, label: "MD" };
+  return { icon: <FileText className="size-4 text-primary" />, label: "HTML" };
 }
 
 function SkeletonCard() {
   return (
-    <Card size="sm" className="hover:translate-y-0">
+    <Card size="sm">
       <CardContent>
         <div className="space-y-2.5">
-          <div
-            className="h-4 w-2/3 rounded-md animate-shimmer"
-            style={{
-              background:
-                "linear-gradient(90deg, var(--muted) 25%, var(--muted-foreground)/10 50%, var(--muted) 75%)",
-              backgroundSize: "200% 100%",
-            }}
-          />
-          <div
-            className="h-3 w-full rounded-md animate-shimmer"
-            style={{
-              background:
-                "linear-gradient(90deg, var(--muted) 25%, var(--muted-foreground)/10 50%, var(--muted) 75%)",
-              backgroundSize: "200% 100%",
-            }}
-          />
-          <div
-            className="h-3 w-1/3 rounded-md animate-shimmer"
-            style={{
-              background:
-                "linear-gradient(90deg, var(--muted) 25%, var(--muted-foreground)/10 50%, var(--muted) 75%)",
-              backgroundSize: "200% 100%",
-            }}
-          />
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-3 w-full" />
+          <Skeleton className="h-3 w-1/3" />
         </div>
       </CardContent>
     </Card>
@@ -104,7 +84,7 @@ export function SearchResults({ results, isLoading }: SearchResultsProps) {
           <Card
             key={r.slug}
             size="sm"
-            className="transition-all duration-200 hover:shadow-sm hover:-translate-y-0.5 cursor-pointer group/card"
+            className="transition-colors duration-200 hover:bg-muted/50 cursor-pointer group/card"
           >
             <CardContent>
               <Link
@@ -117,23 +97,23 @@ export function SearchResults({ results, isLoading }: SearchResultsProps) {
                     <span className="font-medium text-foreground group-hover/card:text-primary transition-colors truncate">
                       {r.filename}
                     </span>
-                    <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                    <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-sm bg-muted text-muted-foreground">
                       {fileInfo.label}
                     </span>
                   </div>
-                {r.snippet && (
-                  <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
-                    {truncate(r.snippet, 200)}
-                  </p>
-                )}
-                <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-                  <span>{relativeTime(r.created_at)}</span>
-                  <span>{r.view_count} view{r.view_count !== 1 ? "s" : ""}</span>
+                  {r.snippet && (
+                    <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+                      {truncate(r.snippet, 200)}
+                    </p>
+                  )}
+                  <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+                    <span>{relativeTime(r.created_at)}</span>
+                    <span>{r.view_count} view{r.view_count !== 1 ? "s" : ""}</span>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          </CardContent>
-        </Card>
+              </Link>
+            </CardContent>
+          </Card>
         );
       })}
     </div>

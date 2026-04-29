@@ -75,7 +75,7 @@ export function BookmarkToggle({ shareId, slug }: BookmarkToggleProps) {
       aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
     >
       <Heart
-        className={`size-4 ${isFavorited ? "text-red-500 fill-red-500" : ""}`}
+        className={`size-4 transition-colors duration-200 ${isFavorited ? "text-destructive fill-destructive" : ""}`}
       />
     </Button>
   );

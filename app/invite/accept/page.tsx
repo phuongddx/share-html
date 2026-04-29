@@ -26,7 +26,7 @@ export default async function InviteAcceptPage({ searchParams }: Props) {
   if (!token) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="max-w-md rounded-lg border bg-card p-8 text-center shadow-sm">
+        <div className="max-w-sm rounded-lg border border-border bg-card p-8 text-center">
           <h1 className="text-xl font-semibold text-destructive">Invalid Invite</h1>
           <p className="mt-2 text-muted-foreground">No invite token provided.</p>
         </div>
@@ -46,7 +46,7 @@ export default async function InviteAcceptPage({ searchParams }: Props) {
   if (inviteError || !invite) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="max-w-md rounded-lg border bg-card p-8 text-center shadow-sm">
+        <div className="max-w-sm rounded-lg border border-border bg-card p-8 text-center">
           <h1 className="text-xl font-semibold text-destructive">Invite Not Found</h1>
           <p className="mt-2 text-muted-foreground">
             This invite does not exist or may have been cancelled.
@@ -66,7 +66,7 @@ export default async function InviteAcceptPage({ searchParams }: Props) {
     }
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="max-w-md rounded-lg border bg-card p-8 text-center shadow-sm">
+        <div className="max-w-sm rounded-lg border border-border bg-card p-8 text-center">
           <h1 className="text-xl font-semibold">Invite Already Used</h1>
           <p className="mt-2 text-muted-foreground">This invite has already been accepted.</p>
         </div>
@@ -78,7 +78,7 @@ export default async function InviteAcceptPage({ searchParams }: Props) {
   if (isInviteExpired(invite.expires_at)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="max-w-md rounded-lg border bg-card p-8 text-center shadow-sm">
+        <div className="max-w-sm rounded-lg border border-border bg-card p-8 text-center">
           <h1 className="text-xl font-semibold text-destructive">Invite Expired</h1>
           <p className="mt-2 text-muted-foreground">
             This invite expired on {new Date(invite.expires_at).toLocaleDateString()}.
@@ -102,7 +102,7 @@ export default async function InviteAcceptPage({ searchParams }: Props) {
     // Not logged in — prompt login with the invite email
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="max-w-md rounded-lg border bg-card p-8 text-center shadow-sm">
+        <div className="max-w-sm rounded-lg border border-border bg-card p-8 text-center">
           <h1 className="text-xl font-semibold">Accept Team Invite</h1>
           <p className="mt-2 text-muted-foreground">
             You have been invited to join <strong>{teamData?.name ?? "a team"}</strong> as{" "}
@@ -130,7 +130,7 @@ export default async function InviteAcceptPage({ searchParams }: Props) {
   if (userEmail !== inviteEmail) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="max-w-md rounded-lg border bg-card p-8 text-center shadow-sm">
+        <div className="max-w-sm rounded-lg border border-border bg-card p-8 text-center">
           <h1 className="text-xl font-semibold text-destructive">Email Mismatch</h1>
           <p className="mt-2 text-muted-foreground">
             This invite was sent to <strong>{invite.email}</strong>.

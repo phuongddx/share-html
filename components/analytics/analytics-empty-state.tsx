@@ -6,9 +6,9 @@ interface AnalyticsEmptyStateProps {
 
 export function AnalyticsEmptyState({ message }: AnalyticsEmptyStateProps) {
   return (
-    <div className="text-center py-12 text-muted-foreground">
-      <FileText className="size-12 mx-auto mb-3 opacity-50" />
-      <p>{message ?? "No analytics data yet. Share a link and views will appear here."}</p>
+    <div className="text-center py-12">
+      <FileText className="size-12 mx-auto mb-3 text-muted-foreground" />
+      <p className="text-sm text-muted-foreground">{message ?? "No analytics data yet. Share a link and views will appear here."}</p>
     </div>
   );
 }

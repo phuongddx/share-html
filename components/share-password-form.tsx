@@ -84,6 +84,7 @@ export function SharePasswordForm({
         onChange={(e) => setPassword(e.target.value)}
         disabled={loading}
         autoComplete="new-password"
+        className="h-10 rounded-md"
       />
       <Input
         type="password"
@@ -92,12 +93,13 @@ export function SharePasswordForm({
         onChange={(e) => setConfirm(e.target.value)}
         disabled={loading}
         autoComplete="new-password"
+        className="h-10 rounded-md"
       />
 
       {error && <p className="text-xs text-destructive">{error}</p>}
 
       <div className="flex items-center gap-2">
-        <Button type="submit" size="sm" disabled={loading || !password}>
+        <Button type="submit" size="sm" disabled={loading || !password} className="rounded-md">
           {loading ? <Loader2 className="size-3 animate-spin" /> : null}
           Set Password
         </Button>
@@ -108,7 +110,7 @@ export function SharePasswordForm({
             size="sm"
             disabled={loading}
             onClick={handleRemove}
-            className="text-destructive hover:text-destructive"
+            className="text-destructive hover:text-destructive rounded-md"
           >
             Remove
           </Button>
