@@ -32,15 +32,19 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       const msg = error.message.toLowerCase();
-      const status = msg.includes("not found")
+      const status = msg.includes("not found") && !msg.includes("invite not found")
         ? 404
-        : msg.includes("expired")
+        : msg.includes("invite not found") || msg.includes("revoked")
           ? 410
-          : msg.includes("already")
+          : msg.includes("expired")
             ? 410
-            : msg.includes("%")
-              ? 403
-              : 500;
+            : msg.includes("already declined")
+              ? 409
+              : msg.includes("already accepted")
+                ? 409
+                : msg.includes("sent to")
+                  ? 403
+                  : 500;
       return NextResponse.json({ error: error.message }, { status });
     }
 

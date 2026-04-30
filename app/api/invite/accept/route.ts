@@ -37,14 +37,16 @@ export async function POST(request: NextRequest) {
       const status = msg.includes("not found")
         ? 404
         : msg.includes("already accepted")
-          ? 410
+          ? 409
           : msg.includes("expired")
             ? 410
             : msg.includes("revoked")
               ? 410
-              : msg.includes("email address")
+              : msg.includes("sent to")
                 ? 403
-                : 500;
+                : msg.includes("no longer valid")
+                  ? 410
+                  : 500;
       return NextResponse.json({ error: error.message }, { status });
     }
 
