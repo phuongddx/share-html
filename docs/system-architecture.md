@@ -129,6 +129,12 @@ User clicks OAuth → /auth/login
   → Redirect to Google/GitHub
   → /auth/callback → exchangeCodeForSession() + INSERT user_profiles
   → Redirect to /dashboard
+
+Email/Password Auth → /auth/login (split-screen)
+  → Email signup + validation flow
+  → Password reset flow (request → email → update)
+  → Email confirmation page
+  → PKCE flow for email authentication
 ```
 
 ### API Key Auth (Programmatic)
@@ -371,3 +377,10 @@ Security: domain validation, rate limiting, CSP headers for embedded content.
 - **Content**: Members share content to workspace via `workspace_shares` junction
 - **RLS**: All workspace tables enforce membership-based access control
 - **API**: CRUD under `/api/dashboard/teams/[slug]/` — members, invites, shares
+- **Enhanced Invite System**: 
+  - Single invite with role selection and email validation
+  - Bulk invite with multiple email addresses support
+  - Invite resend functionality
+  - Invite accept flow with team join
+  - Team RPC client for type-safe server communication
+  - Token security utilities for invite token management

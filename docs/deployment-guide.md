@@ -69,6 +69,7 @@ supabase db push
 | `20260426000002_teams.sql` | `team_workspaces`, `workspace_members`, `workspace_shares` tables |
 | `20260428000001-05` | RLS fixes for team workspaces and infinite recursion bugs |
 | `20260428162629` | RLS policies changed to authenticated role |
+| `20260429000001_add_team_invite_enhancements.sql` | Enhanced team invite system with token security and bulk operations |
 
 ### 2a. Recovery for Already-Provisioned Projects
 
@@ -179,6 +180,8 @@ No custom `vercel.json` needed. Next.js 16 is auto-detected.
 - [ ] OAuth redirect URLs configured in Supabase Dashboard (Google + GitHub)
 - [ ] Editor publish and API key flows tested
 - [ ] Password protection and team workspace flows tested
+- [ ] Team invite system tested (single invite, bulk invite, resend, accept flow)
+- [ ] Email authentication flows tested (signup, login, reset, confirmation)
 - [ ] oEmbed embedding and analytics dashboard functional
 
 ## Maintenance

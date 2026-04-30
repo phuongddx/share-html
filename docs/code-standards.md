@@ -106,6 +106,12 @@ const buffer = Buffer.from(await file.arrayBuffer());
 // POST /api/dashboard/teams/[slug]/members
 // RLS policies ensure only owners can add/remove members
 // workspace_id extracted from route slug, user_id from auth
+
+// Team Invite System Pattern
+// Enhanced invite form with role selection and email validation
+// Bulk invite with multiple email support
+// Invite resend functionality with team RPC client
+// Token security for invite token management
 ```
 
 ### Analytics Tracking Pattern
@@ -166,6 +172,9 @@ Never use the admin client in client components — server-only.
 - **`is_private`**: enforced at RLS level and in `search_shares` RPC — not just application logic
 - **Password protection**: bcryptjs hash in `shares.password_hash`; HMAC-SHA256 signed HttpOnly access cookie
 - **Team workspaces**: RLS policies with owner/member role-based access control on workspace tables
+- **Team RPC client**: Type-safe server communication pattern using lib/team-rpc.ts
+- **Token security**: Secure invite token management with lib/token-security.ts
+- **Email validation**: Real-time email validation with use-email-validation hook
 - **Analytics tracking**: Event-based system with separate `analytics_events` table and privacy safeguards
 
 ## Lint & Build

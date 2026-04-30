@@ -45,6 +45,9 @@ DropItX is a modern web platform that enables users to upload HTML and Markdown 
 - **Dashboard**: Share history, stats (count, total views, storage used)
 - **Analytics Dashboard**: Real-time analytics with charts and metrics
 - **Team Workspaces**: Collaborative content sharing and management
+- **Team Invite System**: Enhanced invite form with role selection and email validation, bulk invite, resend functionality, invite accept flow
+- **Team RPC Client**: Type-safe server communication for team operations
+- **Token Security**: Utilities for invite token management and security
 - **Profile**: Edit display name and avatar
 - **Theme Support**: Light/dark mode switching
 - **Rate Limiting**: 10 requests/minute to prevent abuse
@@ -67,10 +70,11 @@ DropItX is a modern web platform that enables users to upload HTML and Markdown 
 
 ### Non-Functional Requirements
 - **Performance**: Fast load times, editor renders without SSR
-- **Security**: Input validation, RLS policies, CSP headers, API key hashing
+- **Security**: Input validation, RLS policies, CSP headers, API key hashing, token security for invites
 - **Reliability**: High availability, compensating transactions on upload failure
 - **Scalability**: Handle thousands of concurrent uploads
-- **Maintainability**: Clean code structure, monorepo with shared types
+- **Maintainability**: Clean code structure, monorepo with shared types, modular UI primitives
+- **Team Collaboration**: Secure invite system with role-based access control and bulk operations
 
 ## Acceptance Criteria
 
@@ -174,7 +178,15 @@ DropItX is a modern web platform that enables users to upload HTML and Markdown 
 - [x] Password protection for shares
 - [x] Vercel Analytics integration
 
-### Phase 5: Production Hardening (Planned)
+### Phase 5: Production Hardening (In Progress)
+- [x] Enhanced team invite system with role selection and email validation
+- [x] Enhanced invite dialog with invite link generation and team RPC client
+- [x] Bulk invite dialog supporting multiple email addresses
+- [x] Invite accept flow with team join functionality
+- [x] Team RPC client for type-safe server calls
+- [x] Token security utilities for invite token management
+- [x] New UI primitives: dialog, select, textarea, alert components
+- [x] New hooks: use-email-validation, use-team, use-toast
 - [ ] Comprehensive test suite (unit, integration, E2E)
 - [ ] Security audit and penetration testing
 - [ ] Performance benchmarking and optimization

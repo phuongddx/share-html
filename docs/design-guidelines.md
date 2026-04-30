@@ -41,7 +41,13 @@ All theme variables in `app/globals.css` using `oklch()`. The v1.0.0 overhaul es
 - **Button**: Variants via `class-variance-authority` (default, outline, secondary, ghost, destructive, link) + sizes (default, xs, sm, lg, icon)
 - **Card**: Container with Header, Content, Footer, Title, Description, Action subcomponents
 - **Input**: Base UI Input primitive with consistent styling
+- **Textarea**: Multi-line input component with consistent styling
+- **Dialog**: Modal dialog component for user interactions
+- **Select**: Dropdown select component for single/multiple selections
+- **Badge**: Status and indicator component with various styles
+- **Alert**: Contextual alert component with different severity levels
 - **Toaster**: Sonner toast with theme-aware Lucide icons
+- **Skeleton**: Loading state component matching final layout
 
 ### Upload / Share Components
 - **UploadDropzone**: react-dropzone; state machine (idle/dragging/uploading/success/error); full-width mobile, max-w-2xl centered desktop
@@ -82,6 +88,12 @@ All theme variables in `app/globals.css` using `oklch()`. The v1.0.0 overhaul es
 - **TeamNav**: Workspace navigation sidebar with member list
 - **TeamShareCard**: Share card within workspace context with workspace actions
 - **InviteMemberDialog**: Email-based invitation system for workspace members
+- **TeamInviteForm**: Enhanced invite form with role selection and email validation
+- **EnhancedInviteDialog**: Invite dialog with team RPC client and link generation
+- **BulkInviteDialog**: Bulk invitation system supporting multiple email addresses
+- **InviteAcceptForm**: Accept invitation and join team flow
+- **InviteStatusCard**: Invite status tracking and management
+- **CopyButton**: Copy-to-clipboard component for share links
 
 ## Spacing
 
@@ -111,12 +123,15 @@ Tailwind breakpoints (mobile-first):
 | Search | Debounced input → URL params → API call → results |
 | Theme toggle | Class-based `.dark` on `<html>` |
 | OAuth login | Button click → Supabase OAuth redirect → callback |
+| Email authentication | Split-screen login with form validation and PKCE flow |
+| Team invite | Single invite with role selection, bulk invite, resend functionality |
 | Favorites toggle | `BookmarkToggle`; optimistic update; auth-gated |
 | Editor publish | `EditorPublishBar`; validates title; submits to `/api/publish` |
 | Slash commands | Type `/` in `EditorPane`; command palette overlay |
 | Image drop in editor | Drop image → `POST /api/images/upload` → insert `![alt](url)` |
 | Error handling | Sonner toast; error boundary for unhandled errors |
 | Loading states | Skeleton components matching final layout |
+| Invite flow | Form validation → server validation → success feedback |
 
 ## Security in UI
 

@@ -31,12 +31,18 @@ export default async function InviteAcceptPage({ searchParams }: Props) {
     );
   }
 
+  // Use table alias to avoid "column id is ambiguous" when PostgREST
+  // JOINs team_invites with teams (both have an `id` column).
   const supabase = createAdminClient();
-  const { data: invite, error } = await supabase
+  const { data: row, error } = await supabase
     .from("team_invites")
-    .select("id, team_id, email, role, expires_at, status, teams(name, slug)")
+    .select("team_invites!public(id, team_id, email, role, expires_at, status), teams(name, slug)")
     .eq("token", token)
     .single();
+
+  // Unwrap — PostgREST wraps aliased main table columns under the alias key.
+  const invite = row?.team_invites ?? row;
+  const teams = row?.teams;
 
   if (error || !invite) {
     return (
@@ -49,8 +55,7 @@ export default async function InviteAcceptPage({ searchParams }: Props) {
 
   // Already accepted — redirect to team or show used status
   if (invite.status === "accepted") {
-    const teamsRaw = invite.teams as unknown as { slug: string }[];
-    const teamSlug = Array.isArray(teamsRaw) ? teamsRaw[0]?.slug : undefined;
+    const teamSlug = (teams as { slug?: string } | null)?.slug;
     if (teamSlug) redirect(`/dashboard/teams/${teamSlug}`);
     return (
       <InviteStatusCard
@@ -98,8 +103,7 @@ export default async function InviteAcceptPage({ searchParams }: Props) {
     data: { user },
   } = await authClient.auth.getUser();
 
-  const teamsRaw = invite.teams as unknown as { name: string; slug: string }[];
-  const teamData = Array.isArray(teamsRaw) ? teamsRaw[0] : null;
+  const teamData = teams as { name?: string; slug?: string } | null;
 
   if (!user) {
     const loginUrl = `/auth/login?next=${encodeURIComponent(`/invite/accept?token=${token}&auto_accept=true`)}`;
