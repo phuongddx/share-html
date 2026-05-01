@@ -50,7 +50,7 @@ export class ShareHtmlClient {
   }
 
   async publish(content: string, filename: string, opts?: PublishOptions): Promise<PublishResult> {
-    const res = await fetch(`${this.baseUrl}/api/v1/documents`, {
+    const res = await fetch(`${this.baseUrl}/v1/documents`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({
@@ -67,7 +67,7 @@ export class ShareHtmlClient {
   }
 
   async update(slug: string, content: string, opts?: { title?: string; filename?: string }): Promise<UpdateResult> {
-    const res = await fetch(`${this.baseUrl}/api/v1/documents/${slug}`, {
+    const res = await fetch(`${this.baseUrl}/v1/documents/${slug}`, {
       method: "PATCH",
       headers: this.headers(),
       body: JSON.stringify({ content, ...opts }),
@@ -77,7 +77,7 @@ export class ShareHtmlClient {
   }
 
   async delete(slug: string): Promise<void> {
-    const res = await fetch(`${this.baseUrl}/api/v1/documents/${slug}`, {
+    const res = await fetch(`${this.baseUrl}/v1/documents/${slug}`, {
       method: "DELETE",
       headers: this.headers(),
     });
@@ -85,7 +85,7 @@ export class ShareHtmlClient {
   }
 
   async list(limit = 20, offset = 0): Promise<ListResult> {
-    const res = await fetch(`${this.baseUrl}/api/v1/documents?limit=${limit}&offset=${offset}`, {
+    const res = await fetch(`${this.baseUrl}/v1/documents?limit=${limit}&offset=${offset}`, {
       headers: this.headers(),
     });
     if (!res.ok) await this.throwError(res);
@@ -93,7 +93,7 @@ export class ShareHtmlClient {
   }
 
   async whoami(): Promise<{ user_id: string }> {
-    const res = await fetch(`${this.baseUrl}/api/v1/documents?limit=1`, {
+    const res = await fetch(`${this.baseUrl}/v1/documents?limit=1`, {
       headers: this.headers(),
     });
     if (!res.ok) await this.throwError(res);

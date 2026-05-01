@@ -1,0 +1,6 @@
+{
+  "buildCommand": "cd ../.. && pnpm turbo build --filter=@dropitx/api",
+  "outputDirectory": "dist",
+  "rewrites": [{ "source": "/(.*)", "destination": "/api" }],
+  "framework": null
+}

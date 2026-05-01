@@ -23,7 +23,9 @@
 # misc
 .DS_Store
 *.pem
-/packages
+/packages/*/dist/
+/packages/*/.next/
+/packages/*/node_modules/
 .omx
 /plans
 smartletter-data-binding-analysis.html
@@ -34,6 +36,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+
+# turbo
+.turbo/
 
 # env files (can opt-in for committing if needed)
 .env*

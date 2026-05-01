@@ -1,6 +1,6 @@
 # DropItX
 
-Drop HTML and Markdown files, write in the built-in editor, and get short shareable links. Programmatic access via REST API and CLI. Built with Next.js 16, Supabase, and Tailwind CSS.
+Drop HTML and Markdown files, write in the built-in editor, and get short shareable links. Programmatic access via REST API and CLI. Built as a Turborepo monorepo with Next.js 16, Hono API server, Supabase, and Tailwind CSS.
 
 ## Features
 
@@ -19,7 +19,9 @@ Drop HTML and Markdown files, write in the built-in editor, and get short sharea
 
 ## Tech Stack
 
-- **Next.js 16** (App Router, React 19)
+- **Turborepo** (monorepo with pnpm workspaces)
+- **Next.js 16** (App Router, React 19) - web application
+- **Hono** - API server
 - **TypeScript** (strict mode)
 - **Supabase** (PostgreSQL, Storage, Auth — Google/GitHub OAuth)
 - **CodeMirror 6** (Markdown editor, SSR-disabled)
@@ -32,31 +34,44 @@ Drop HTML and Markdown files, write in the built-in editor, and get short sharea
 ### Prerequisites
 
 - Node.js 20+
+- pnpm 8+
 - Supabase project (or local via Supabase CLI)
 - Upstash Redis instance
 
 ### Setup
 
 ```bash
-# Install dependencies
-npm install
+# Install dependencies (from root)
+pnpm install
 
 # Copy and fill in environment variables
 cp .env.example .env.local
 
-# Run development server
-npm run dev   # http://localhost:3000
+# Start both API and web in parallel
+pnpm dev
+
+# Or start individually:
+pnpm --filter @dropitx/api dev  # API on http://localhost:8787
+pnpm --filter @dropitx/web dev  # Web on http://localhost:3000
 ```
 
 ### Environment Variables
 
+#### Web Application (packages/web)
 | Variable | Description |
 |----------|-------------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase anon/public key |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/public key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server-only) |
-| `UPSTASH_REDIS_REST_URL` | Upstash Redis REST endpoint |
-| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis auth token |
+| `API_URL` | API base URL for server-side calls (e.g., `http://localhost:8787`) |
+
+#### API Server (packages/api)
+| Variable | Description |
+|----------|-------------|
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key |
+| `SUPABASE_JWT_SECRET` | JWT secret for token validation |
+| `CORS_ORIGIN` | Allowed CORS origin (e.g., `http://localhost:3000`) |
 
 ### Database Setup
 
@@ -102,11 +117,11 @@ All v1 endpoints require `Authorization: Bearer <api-key>`. Generate keys at `/d
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/api/v1/documents` | Create document |
-| `GET` | `/api/v1/documents` | List documents (`?limit=&offset=`) |
-| `GET` | `/api/v1/documents/:slug` | Get metadata + URL |
-| `PATCH` | `/api/v1/documents/:slug` | Update content/metadata |
-| `DELETE` | `/api/v1/documents/:slug` | Delete (204) |
+| `POST` | `/v1/documents` | Create document |
+| `GET` | `/v1/documents` | List documents (`?limit=&offset=`) |
+| `GET` | `/v1/documents/:slug` | Get metadata + URL |
+| `PATCH` | `/v1/documents/:slug` | Update content/metadata |
+| `DELETE` | `/v1/documents/:slug` | Delete (204) |
 
 **Create document request body:**
 ```json
@@ -122,32 +137,30 @@ All v1 endpoints require `Authorization: Bearer <api-key>`. Generate keys at `/d
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/api/v1/keys` | Create API key (returned once) |
-| `GET` | `/api/v1/keys` | List keys (prefix only, no hash) |
-| `DELETE` | `/api/v1/keys/:id` | Revoke key (soft-delete) |
+| `POST` | `/v1/keys` | Create API key (returned once) |
+| `GET` | `/v1/keys` | List keys (prefix only, no hash) |
+| `DELETE` | `/v1/keys/:id` | Revoke key (soft-delete) |
 
 ## Project Structure
 
 ```
-app/                  # Next.js App Router pages and API routes
-app/editor/           # Markdown editor (SSR-disabled)
-app/api/v1/           # REST API (API key auth)
-components/           # React components (ui/ for primitives)
-lib/                  # Utilities (nanoid, extract-text, rate-limit, api-auth)
-lib/editor-extensions/# CodeMirror slash commands, image drop
-utils/supabase/       # Supabase client factories (browser, server, admin)
-types/                # TypeScript interfaces
+packages/
+├── shared/            # Shared utilities and types
+├── web/              # Next.js web application
+├── api/              # Hono API server
+└── cli/              # CLI tool (dropitx binary)
 supabase/             # Schema and migrations
-packages/cli/         # CLI tool (dropitx binary)
-public/               # Static assets
 docs/                 # Project documentation
 ```
 
 ## Scripts
 
-- `npm run dev` — Development server
-- `npm run build` — Production build + TypeScript check
-- `npm run lint` — ESLint
+- `pnpm dev` — Start both API and web in parallel (API on :8787, web on :3000)
+- `pnpm build` — Build all packages in dependency order
+- `pnpm type-check` — Run TypeScript checks across all packages
+- `pnpm lint` — Run ESLint across all packages
+- `pnpm --filter @dropitx/web dev` — Start web application only
+- `pnpm --filter @dropitx/api dev` — Start API server only
 
 ## Documentation
 

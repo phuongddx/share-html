@@ -2,13 +2,15 @@
 
 ## Overview
 
-DropItX is a Next.js 16 (App Router) application for uploading HTML/Markdown files, writing in a built-in Markdown editor, and generating short shareable links. Features include team workspaces, analytics dashboard, password-protected shares, rich embedding via oEmbed, and programmatic access via REST API and CLI. Deployed on Vercel with Supabase (PostgreSQL + Storage) and Upstash Redis.
+DropItX is a Turborepo monorepo with Next.js 16 web application and Hono API server for uploading HTML/Markdown files, writing in a built-in Markdown editor, and generating short shareable links. Features include team workspaces, analytics dashboard, password-protected shares, rich embedding via oEmbed, and programmatic access via REST API and CLI. Deployed on Vercel with Supabase (PostgreSQL + Storage) and Upstash Redis.
 
 ## Technology Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Framework | Next.js 16 (App Router), React 19, TypeScript strict |
+| Monorepo | Turborepo, pnpm workspace |
+| Web Framework | Next.js 16 (App Router), React 19, TypeScript strict |
+| API Framework | Hono, Hono Zod Validator |
 | Editor | CodeMirror 6, loaded via `next/dynamic` (ssr: false) |
 | Viewer | `react-markdown` + `remark-gfm` + shiki |
 | Database | Supabase PostgreSQL (RLS), Storage (S3-compatible) |
@@ -50,54 +52,106 @@ DropItX is a Next.js 16 (App Router) application for uploading HTML/Markdown fil
 ## File Structure Overview
 
 ```
-app/
-├── layout.tsx, page.tsx, globals.css, not-found.tsx, error.tsx
-├── editor/page.tsx                     # Markdown editor (SSR-disabled)
-├── s/[slug]/page.tsx, loading.tsx      # Public share viewer
-├── s/[slug]/embed/page.tsx            # Embed-friendly viewer
-├── search/page.tsx, loading.tsx        # Full-text search
-├── dashboard/
-│   ├── layout.tsx, page.tsx            # Share list + stats + API keys
-│   ├── profile/page.tsx
-│   ├── favorites/page.tsx
-│   ├── analytics/page.tsx              # Analytics dashboard with charts
-│   ├── teams/page.tsx                  # Team workspace list
-│   ├── teams/new/page.tsx             # Create new workspace
-│   ├── teams/[slug]/page.tsx           # Workspace details
-│   ├── teams/[slug]/members/page.tsx  # Member management
-│   ├── teams/[slug]/settings/page.tsx # Workspace settings
-│   └── teams/[slug]/shares/page.tsx   # Workspace content
-├── auth/
-│   ├── login/page.tsx                 # Email/password + OAuth sign-in
-│   ├── callback/route.ts              # PKCE code exchange
-│   ├── confirm/route.ts               # Email confirmation
-│   ├── reset-password/page.tsx         # Password reset page
-│   └── update-password/page.tsx       # Update password after reset
-└── api/
-    ├── upload/route.ts                # POST multipart ≤50 MB
-    ├── publish/route.ts               # POST editor publish
-    ├── images/upload/route.ts         # POST inline images ≤5 MB
-    ├── search/route.ts                # GET full-text search
-    ├── shares/[slug]/route.ts         # GET/PATCH/DELETE owner CRUD
-    ├── shares/[slug]/set-password/route.ts  # Share password management
-    ├── shares/[slug]/unlock/route.ts     # Password unlock with cookie
-    ├── analytics/track/route.ts       # Event tracking
-    ├── oembed/route.ts                # oEmbed JSON endpoint
-    ├── oembed.xml/route.ts             # oEmbed XML endpoint
-    └── dashboard/
-        └── teams/
-            ├── [slug]/invites/route.ts         # GET/POST invites
-            ├── [slug]/invites/bulk/route.ts   # POST bulk invite
-            ├── [slug]/invites/[id]/resend/route.ts  # POST resend invite
-            ├── [slug]/events/route.ts         # GET team events
-            ├── [slug]/shares/route.ts         # GET workspace shares
-            └── [slug]/members/route.ts        # GET/POST members
-    └── v1/
-        ├── keys/route.ts              # GET/POST api keys
-        ├── keys/[id]/route.ts         # DELETE (revoke) api key
-        └── documents/
-            ├── route.ts               # POST create, GET list
-            └── [slug]/route.ts        # GET/PATCH/DELETE
+packages/
+├── shared/                             # Shared utilities and types
+│   └── src/
+│       ├── supabase/                   # Supabase client configurations
+│       └── types/                      # Shared TypeScript types
+├── web/                                # Next.js web application
+│   └── app/
+│       ├── layout.tsx, page.tsx, globals.css, not-found.tsx, error.tsx
+│       ├── editor/page.tsx                     # Markdown editor (SSR-disabled)
+│       ├── s/[slug]/page.tsx, loading.tsx      # Public share viewer
+│       ├── embed/[slug]/page.tsx               # Embed-friendly viewer
+│       ├── search/page.tsx, loading.tsx        # Full-text search
+│       ├── dashboard/
+│       │   ├── layout.tsx, page.tsx            # Share list + stats + API keys
+│       │   ├── profile/page.tsx
+│       │   ├── favorites/page.tsx
+│       │   ├── analytics/page.tsx              # Analytics dashboard with charts
+│       │   ├── teams/page.tsx                  # Team workspace list
+│       │   ├── teams/new/page.tsx             # Create new workspace
+│       │   ├── teams/[slug]/page.tsx           # Workspace details
+│       │   ├── teams/[slug]/members/page.tsx  # Member management
+│       │   ├── teams/[slug]/settings/page.tsx # Workspace settings
+│       │   └── teams/[slug]/shares/page.tsx   # Workspace content
+│       ├── auth/
+│       │   ├── login/page.tsx                 # Email/password + OAuth sign-in
+│       │   ├── callback/route.ts              # PKCE code exchange
+│       │   ├── confirm/route.ts               # Email confirmation
+│       │   ├── reset-password/page.tsx         # Password reset page
+│       │   └── update-password/page.tsx       # Update password after reset
+│       └── api/                               # Next.js API routes (proxied to Hono)
+│           ├── v1/
+│           │   ├── keys/route.ts              # GET/POST api keys (proxied)
+│           │   ├── keys/[id]/route.ts         # DELETE api key (proxied)
+│           │   └── documents/
+│           │       ├── route.ts               # POST create, GET list (proxied)
+│           │       └── [slug]/route.ts        # GET/PATCH/DELETE (proxied)
+│           └── dashboard/                     # Dashboard API routes (proxied)
+│               ├── upload/route.ts            # POST multipart ≤50 MB
+│               ├── publish/route.ts           # POST editor publish
+│               ├── images/upload/route.ts     # POST inline images ≤5 MB
+│               ├── search/route.ts            # GET full-text search
+│               ├── shares/[slug]/route.ts     # GET/PATCH/DELETE owner CRUD
+│               ├── shares/[slug]/set-password/route.ts  # Share password management
+│               ├── shares/[slug]/unlock/route.ts     # Password unlock with cookie
+│               ├── analytics/track/route.ts    # Event tracking
+│               ├── oembed/route.ts             # oEmbed JSON endpoint
+│               └── teams/
+│                   ├── route.ts                # GET/POST teams
+│                   ├── [slug]/route.ts         # GET/PATCH/DELETE team
+│                   ├── [slug]/invites/route.ts         # GET/POST invites
+│                   ├── [slug]/invites/bulk/route.ts   # POST bulk invite
+│                   ├── [slug]/invites/[id]/resend/route.ts  # POST resend invite
+│                   ├── [slug]/events/route.ts         # GET team events
+│                   ├── [slug]/shares/route.ts         # GET workspace shares
+│                   └── [slug]/members/route.ts        # GET/POST members
+│   ├── lib/                               # Web-specific libraries
+│   │   ├── api-client.ts                  # API client for server components
+│   │   ├── share-access-cookie.ts         # Share access cookie utilities
+│   │   └── ...
+│   ├── middleware.ts                      # Next.js middleware for auth
+│   └── next.config.ts                     # Next.js config with API rewrites
+├── api/                                 # Hono API server
+│   └── src/
+│       ├── app.ts                        # Hono app with all routes
+│       ├── routes/                       # API route handlers
+│       │   ├── v1/                       # Public REST API
+│       │   │   ├── keys.ts               # API key CRUD
+│       │   │   └── documents.ts          # Document CRUD
+│       │   └── dashboard/                # Dashboard API
+│       │       ├── upload.ts             # File upload
+│       │       ├── publish.ts            # Editor publish
+│       │       ├── images-upload.ts      # Image upload
+│       │       ├── search.ts             # Full-text search
+│       │       ├── shares.ts             # Share CRUD
+│       │       ├── analytics.ts          # Analytics tracking
+│       │       ├── oembed.ts             # oEmbed endpoint
+│       │       └── teams.ts              # Team workspace CRUD
+│       ├── lib/                          # API-specific libraries
+│       │   ├── api-auth.ts               # API key authentication
+│       │   ├── api-key.ts                # API key generation
+│       │   ├── nanoid.ts                 # ID generation
+│       │   ├── password.ts               # Password hashing
+│       │   ├── extract-text.ts           # Text extraction
+│       │   └── ...
+│       └── middleware/                   # Hono middleware
+│           ├── auth.ts                   # Authentication middleware
+│           └── teams.ts                  # Team membership middleware
+└── cli/                                 # CLI tool
+    └── src/
+        ├── index.ts                      # CLI entry point
+        ├── commands/                     # CLI commands
+        │   ├── publish.ts                # Publish files
+        │   ├── list.ts                   # List documents
+        │   ├── delete.ts                 # Delete documents
+        │   ├── login.ts                  # Configure auth
+        │   └── ...
+        └── lib/                          # CLI libraries
+            ├── api-client.ts             # API client (updated to use /v1/)
+            └── config.ts                 # Config management
+```
 
 components/
 ├── ui/{button,card,input,textarea,dialog,select,badge,alert,sonner,skeleton}.tsx

@@ -1,0 +1,33 @@
+{
+  "name": "@dropitx/shared",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./types/*": "./src/types/*.ts",
+    "./supabase/*": "./src/supabase/*.ts",
+    "./auth/*": "./src/auth/*.ts",
+    "./validation/*": "./src/validation/*.ts",
+    "./utils/*": "./src/utils/*.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts",
+    "dev": "tsup src/index.ts --format esm --dts --watch",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.104.0",
+    "@supabase/ssr": "^0.10.2",
+    "nanoid": "^5.1.5",
+    "bcryptjs": "^3.0.2"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
+    "tsup": "^8.4.0",
+    "typescript": "^5"
+  }
+}

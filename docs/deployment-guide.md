@@ -1,24 +1,57 @@
-# Deployment Guide
+# DropItX Vercel Deployment Guide (Monorepo)
+
+This guide explains how to deploy DropItX as a Turborepo monorepo with two separate Vercel projects (web + API).
+
+## Architecture
+
+```
+Vercel Dashboard
+├── dropitx-web (project)
+│   ├── Root Directory: packages/web
+│   ├── Framework: Next.js
+│   ├── Build Command: cd ../.. && pnpm turbo build --filter=@dropitx/web
+│   └── Domain: dropitx.vercel.app (or custom)
+├── dropitx-api (project)
+│   ├── Root Directory: packages/api
+│   ├── Framework: Other
+│   ├── Build Command: cd ../.. && pnpm turbo build --filter=@dropitx/api
+│   └── Domain: api.dropitx.vercel.app (or custom)
+└── Shared
+    ├── Git repo: same GitHub repo
+    ├── Turborepo remote cache: enabled (automatic)
+    └── Shared env vars via Vercel team settings
+```
 
 ## Prerequisites
 
-- Node.js 20+, npm 8+
+- Node.js 20+, pnpm 8+
 - Supabase project (hosted or local via CLI)
-- Upstash Redis instance
 - Vercel account (or compatible hosting)
+- GitHub repository with monorepo structure
 
 ## Environment Variables
 
-| Variable | Description |
-|----------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase anon/public key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server-only) |
-| `UPSTASH_REDIS_REST_URL` | Upstash Redis REST endpoint |
-| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis auth token |
-| `SHARE_ACCESS_SECRET` | 32+ char secret for HMAC cookie signing (password protection) |
+### dropitx-web Project
 
-No additional env vars are needed for API key hashing — it uses Node.js built-in `crypto`.
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anonymous/public key (may be named `PUBLISHABLE_KEY` in newer Supabase) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key (server-side only) |
+| `API_URL` | Yes | API base URL for server-side calls: `https://api.dropitx.vercel.app` |
+
+**Important:** Do NOT set `NEXT_PUBLIC_API_URL`. Client components use relative paths (`/api/...`) which are proxied by Next.js rewrites to the Hono API.
+
+### dropitx-api Project
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `SUPABASE_URL` | Yes | Supabase project URL (same as web) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key (same as web) |
+| `SUPABASE_JWT_SECRET` | Yes | JWT secret from Supabase dashboard (Settings → API → JWT Secret) |
+| `CORS_ORIGIN` | Yes | Must be set explicitly: `https://dropitx.vercel.app` (never use `*`) |
+
+**Note:** No Upstash variables needed. Rate limiting uses Postgres RPC functions.
 
 ## Supabase Setup
 
@@ -42,63 +75,7 @@ supabase link --project-ref <your-project-ref>
 supabase db push
 ```
 
-**Manual (SQL editor):** Run in this order:
-1. `supabase/schema.sql`
-2. `supabase/migrations/20260423000001_add_auth_tables.sql`
-3. `supabase/migrations/20260424000001_add_editor_columns.sql`
-4. `supabase/migrations/20260424000002_add_api_keys.sql`
-5. `supabase/migrations/20260424000003_private_search_filter.sql`
-6. `supabase/migrations/20260425000001_add_share_password.sql`
-7. `supabase/migrations/20260425045621_rate-limits-supabase.sql`
-8. `supabase/migrations/20260426000001_share_views.sql`
-9. `supabase/migrations/20260426000002_teams.sql`
-10. All RLS fix migrations from 20260428000001 to 20260428162629 (apply in timestamp order)
-
-**What each migration creates:**
-
-| File | Creates |
-|------|---------|
-| `schema.sql` | `shares` table, GIN index, `search_shares` + `increment_view_count` RPCs |
-| `20260423000001_add_auth_tables.sql` | `user_profiles`, `favorites`, `shares.user_id`, `shares.title` |
-| `20260424000001_add_editor_columns.sql` | `shares.source`, `shares.custom_slug`, `shares.is_private`, `shares.updated_at` |
-| `20260424000002_add_api_keys.sql` | `api_keys` table + RLS policies |
-| `20260424000003_private_search_filter.sql` | Updates `search_shares` RPC to filter private shares by owner |
-| `20260425000001_add_share_password.sql` | `shares.password_hash` (nullable TEXT) for password protection |
-| `20260425045621_rate-limits-supabase.sql` | Rate limiting policies and procedures |
-| `20260426000001_share_views.sql` | Share view tracking system |
-| `20260426000002_teams.sql` | `team_workspaces`, `workspace_members`, `workspace_shares` tables |
-| `20260428000001-05` | RLS fixes for team workspaces and infinite recursion bugs |
-| `20260428162629` | RLS policies changed to authenticated role |
-| `20260429000001_add_team_invite_enhancements.sql` | Enhanced team invite system with token security and bulk operations |
-
-### 2a. Recovery for Already-Provisioned Projects
-
-If profile reads fail with `PGRST205` / `Could not find the table 'public.user_profiles'`, the auth migration is missing.
-
-1. Apply `supabase/migrations/20260423000001_add_auth_tables.sql`
-2. Backfill existing users:
-
-```sql
-INSERT INTO public.user_profiles (id, display_name, avatar_url)
-SELECT
-  u.id,
-  NULLIF(LEFT(TRIM(REGEXP_REPLACE(
-    COALESCE(u.raw_user_meta_data->>'full_name', u.raw_user_meta_data->>'name',
-             u.raw_user_meta_data->>'user_name', u.raw_user_meta_data->>'preferred_username', ''),
-    '<[^>]+>', '', 'g')), 100), '') AS display_name,
-  CASE
-    WHEN COALESCE(u.raw_user_meta_data->>'avatar_url', '') LIKE 'https://%'
-      THEN u.raw_user_meta_data->>'avatar_url'
-    WHEN COALESCE(u.raw_user_meta_data->>'picture', '') LIKE 'https://%'
-      THEN u.raw_user_meta_data->>'picture'
-    ELSE NULL
-  END AS avatar_url
-FROM auth.users u
-LEFT JOIN public.user_profiles p ON p.id = u.id
-WHERE p.id IS NULL;
-```
-
-3. Verify by loading `/dashboard/profile`.
+**Manual (SQL editor):** Run migrations in timestamp order from `supabase/migrations/` directory.
 
 ### 3. Storage Bucket
 
@@ -112,22 +89,98 @@ No storage policies needed — server uses the `service_role` client which bypas
 ### 4. Get Keys
 
 Dashboard > Settings > API:
-- **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
-- **anon/public** key → `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- **Project URL** → `NEXT_PUBLIC_SUPABASE_URL` / `SUPABASE_URL`
+- **anon/public** key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - **service_role** key → `SUPABASE_SERVICE_ROLE_KEY`
+- **JWT Secret** → `SUPABASE_JWT_SECRET` (API project only)
 
-## Upstash Setup
+## Initial Deployment Setup
 
-1. Create Redis database at [console.upstash.com](https://console.upstash.com)
-2. Copy **REST URL** and **REST Token** to env vars
-3. Rate limit config: 10 requests/minute sliding window per IP (`lib/rate-limit.ts`)
+### Step 1: Deploy API Project (Do This First)
+
+The API has no dependencies on the web app, so deploy it first:
+
+```bash
+# Navigate to API package
+cd packages/api
+
+# Link to Vercel project (create new if needed)
+vercel link
+
+# Deploy to production
+vercel --prod
+```
+
+**Vercel Project Settings for API:**
+- **Root Directory:** `packages/api`
+- **Framework Preset:** Other
+- **Build Command:** `cd ../.. && pnpm turbo build --filter=@dropitx/api`
+- **Output Directory:** `dist`
+- **Install Command:** `pnpm install` (default from root package.json)
+
+**Set Environment Variables on API Project:**
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_JWT_SECRET`
+- `CORS_ORIGIN` = `https://dropitx.vercel.app`
+
+### Step 2: Deploy Web Project
+
+After the API is live, deploy the web app:
+
+```bash
+# Navigate to web package
+cd packages/web
+
+# Link to Vercel project (or update existing)
+vercel link
+
+# Deploy to production
+vercel --prod
+```
+
+**Vercel Project Settings for Web:**
+- **Root Directory:** `packages/web`
+- **Framework Preset:** Next.js (auto-detected)
+- **Build Command:** `cd ../.. && pnpm turbo build --filter=@dropitx/web`
+- **Install Command:** `pnpm install` (default from root package.json)
+
+**Set Environment Variables on Web Project:**
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `API_URL` = `https://api.dropitx.vercel.app`
+
+## URL Routing Strategy
+
+### Client Components (Browser)
+- Use relative paths: `/api/v1/documents`, `/api/shares/[slug]`, etc.
+- Next.js rewrites proxy these to `https://api.dropitx.vercel.app`
+- No CORS issues (same origin)
+- No exposed API URLs in client bundle
+
+### Server Components (Next.js Server)
+- Use `API_URL` environment variable for server-side calls
+- Direct HTTP requests to Hono API via apiClient
+- Bypass Next.js rewrites for better performance
+
+### Direct API Access (CLI, Mobile Apps, External Services)
+- Use `https://api.dropitx.vercel.app` directly
+- CORS is configured for `CORS_ORIGIN` domain
+- Requires API key authentication via `Authorization` header
 
 ## Local Development
 
 ```bash
-npm install
-cp .env.example .env.local  # fill in env vars
-npm run dev                  # http://localhost:3000
+# Install dependencies (from root)
+pnpm install
+
+# Start both API and web in parallel
+pnpm dev
+
+# Or start individually:
+pnpm --filter @dropitx/api dev  # API on http://localhost:8787
+pnpm --filter @dropitx/web dev  # Web on http://localhost:3000
 ```
 
 ## CLI Tool Setup
@@ -136,9 +189,9 @@ The CLI lives in `packages/cli/` and is a separate TypeScript ESM package.
 
 ```bash
 cd packages/cli
-npm install
-npm run build          # compiles to dist/
-npm link               # makes `dropitx` available globally
+pnpm install
+pnpm run build          # compiles to dist/
+pnpm link               # makes `dropitx` available globally
 
 # Configure with your API key (generated from /dashboard)
 dropitx login
@@ -149,33 +202,108 @@ dropitx list
 
 Config is stored at `~/.dropitx/config.json` (mode 0600). Never commit this file.
 
-## Vercel Deployment
+## Verification Steps
 
-### CLI
+After deployment, verify both projects:
 
+### 1. API Health Check
 ```bash
-npx vercel login
-npx vercel --prod
+curl https://api.dropitx.vercel.app/health
+# Expected: {"status":"ok"} or similar health response
 ```
 
-### Dashboard
+### 2. Web App Home Page
+```bash
+curl https://dropitx.vercel.app
+# Expected: HTML response with DropItX UI
+```
 
-1. Import GitHub repo at vercel.com/new
-2. Framework preset: Next.js (auto-detected)
-3. Add all 5 environment variables in Settings > Environment Variables
-4. Deploy
+### 3. End-to-End Flows
+- [ ] OAuth login flow works (GitHub/Google callback → dashboard)
+- [ ] File upload works (create document → upload file → publish)
+- [ ] Share viewer works (public + password-protected shares)
+- [ ] Team invitation flow works (send invite → accept → member added)
+- [ ] CLI works against new API URL (`dropitx --api-url https://api.dropitx.vercel.app ...`)
 
-### Build Config
+### 4. Server-Side Rendering
+- [ ] Dashboard pages render correctly (SSR)
+- [ ] Share viewer pages render correctly (SSR + ISR)
+- [ ] Search functionality works (API calls from server components)
 
-No custom `vercel.json` needed. Next.js 16 is auto-detected.
+## Turborepo Remote Caching
+
+Vercel automatically enables remote caching for Turborepo repositories. This means:
+
+- Build artifacts are cached across deployments
+- Subsequent builds are faster (only changed packages are rebuilt)
+- No manual configuration required
+
+To verify remote caching is active:
+```bash
+pnpm turbo build --filter=@dropitx/web --dry
+```
+
+Look for cache status indicators in the output.
+
+## Git Workflow
+
+Both projects are connected to the same GitHub repository. When you push to the main branch:
+
+1. Vercel detects the push
+2. Both projects build in parallel (if both changed)
+3. API deploys first (no dependencies)
+4. Web app deploys second (depends on API URL)
+5. Zero-downtime deployments (Vercel handles traffic shifting)
+
+## Troubleshooting
+
+### Build Failures
+
+**Error:** "No package found with name 'web'"
+- **Solution:** Use full package name: `--filter=@dropitx/web`
+
+**Error:** "Cannot find module '@dropitx/shared'"
+- **Solution:** Ensure `pnpm install` runs in root directory before build
+
+**Error:** "Supabase JWT verification failed"
+- **Solution:** Verify `SUPABASE_JWT_SECRET` matches exactly between web and API projects
+
+### Runtime Errors
+
+**Error:** "CORS origin not allowed"
+- **Solution:** Set `CORS_ORIGIN` env var on API project to exact web URL (no trailing slash)
+
+**Error:** "API_URL is not defined"
+- **Solution:** Add `API_URL` env var to web project (server-side only, no `NEXT_PUBLIC_` prefix)
+
+**Error:** "Next.js rewrites not working"
+- **Solution:** Ensure `next.config.ts` has rewrites configured and middleware matcher doesn't intercept `/api/*` paths
+
+### Performance Issues
+
+**Issue:** Slow cold starts on API
+- **Solution:** Hono is lightweight (~14KB), but consider adding `maxDuration` to vercel.json if needed:
+  ```json
+  {
+    "functions": {
+      "api/*.js": {
+        "maxDuration": 10
+      }
+    }
+  }
+  ```
+
+**Issue:** Build times are long
+- **Solution:** Verify Turborepo remote caching is active in Vercel dashboard
 
 ## Production Checklist
 
-- [ ] All 6 env vars set in Vercel (including SHARE_ACCESS_SECRET)
-- [ ] Supabase schema + all 14 migrations applied (including teams and analytics)
+- [ ] All env vars set on both Vercel projects
+- [ ] Supabase schema + all migrations applied
 - [ ] Storage bucket `html-files` created (public, 50 MB, correct MIME types)
-- [ ] Upstash Redis connected
-- [ ] `npm run build` passes
+- [ ] `pnpm turbo build` passes for both packages
+- [ ] API health check returns 200
+- [ ] Web app loads correctly
 - [ ] Upload, view, search, delete flows tested
 - [ ] OAuth redirect URLs configured in Supabase Dashboard (Google + GitHub)
 - [ ] Editor publish and API key flows tested
@@ -183,6 +311,8 @@ No custom `vercel.json` needed. Next.js 16 is auto-detected.
 - [ ] Team invite system tested (single invite, bulk invite, resend, accept flow)
 - [ ] Email authentication flows tested (signup, login, reset, confirmation)
 - [ ] oEmbed embedding and analytics dashboard functional
+- [ ] CLI works with new API URL
+- [ ] Turborepo remote caching is active
 
 ## Maintenance
 
@@ -206,4 +336,51 @@ Consider automating via Supabase Edge Function or `pg_cron`.
 
 - **Vercel**: Built-in analytics, function logs, error tracking
 - **Supabase**: Dashboard for DB stats, storage usage, query performance
-- **Upstash**: Dashboard for Redis metrics and rate limit hit rates
+- **Rate limiting**: Built-in via Postgres RPC (check `supabase/migrations/20260425045621_rate-limits-supabase.sql`)
+
+## Migration from Single-App Deployment
+
+If migrating from a single-app deployment:
+
+1. **Deploy API first** to new Vercel project
+2. **Update DNS/custom domains** to point to new projects
+3. **Deploy web app** with API rewrites configured
+4. **Test all flows** before deleting old project
+5. **Update CLI** to use new API URL
+6. **Delete old Vercel project** after verification
+
+## Security Checklist
+
+- [ ] `API_URL` is NOT prefixed with `NEXT_PUBLIC_` (server-side only)
+- [ ] `CORS_ORIGIN` is set to specific domain, never `*`
+- [ ] `SUPABASE_SERVICE_ROLE_KEY` is never exposed to client
+- [ ] `SUPABASE_JWT_SECRET` matches exactly between projects
+- [ ] No hardcoded credentials in code
+- [ ] Rate limiting is enabled via Postgres RPC
+- [ ] API key authentication is enforced for `/api/v1/*` routes
+- [ ] OAuth redirect URLs are updated in Supabase settings
+
+## Cost Considerations
+
+- **Hobby Plan:** Both projects fit in free tier (if under limits)
+- **Pro Plan:** Recommended for production (higher limits, team features)
+- **Database:** Supabase costs are separate (not included in Vercel pricing)
+
+## Next Steps
+
+After initial deployment:
+1. Set up custom domains (optional)
+2. Configure automatic previews for pull requests
+3. Set up error tracking (Sentry, LogRocket)
+4. Set up uptime monitoring (Pingdom, UptimeRobot)
+5. Document runbook for incident response
+6. Train team on monorepo workflow
+
+## Support
+
+For issues specific to:
+- **Vercel deployment:** https://vercel.com/docs
+- **Turborepo:** https://turbo.build/repo/docs
+- **Hono:** https://hono.dev/docs
+- **Next.js:** https://nextjs.org/docs
+- **DropItX:** Check `./docs` directory or open GitHub issue
