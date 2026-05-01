@@ -1,0 +1,16 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "pnpm run build",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "projects": {
+    "api": {
+      "root": "packages/api",
+      "name": "dropitx-api",
+      "framework": null,
+      "buildCommand": "pnpm --filter @dropitx/shared build && pnpm --filter @dropitx/api build",
+      "outputDirectory": "dist",
+      "installCommand": "pnpm install --frozen-lockfile",
+      "rewrites": [{ "source": "/(.*)", "destination": "/api" }]
+    }
+  }
+}
