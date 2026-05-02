@@ -16,7 +16,7 @@ import {
 } from "@/lib/use-scroll-sync";
 import { nanoid } from "nanoid";
 import { toast } from "sonner";
-import { getApiUrl, authFetch } from "@/lib/api-client";
+import { authFetch } from "@/lib/api-client";
 
 const EditorPane = dynamic(
   () =>
