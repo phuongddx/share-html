@@ -142,6 +142,14 @@ DropItX has completed Phase 1 through Phase 4, delivering core file sharing, ful
 ### Phase 4: Growth, Engagement & Revenue — COMPLETE
 **Duration**: April 2026
 
+#### FastAPI Backend Migration
+- [x] Migrated all 24 Next.js API routes to FastAPI backend on Render
+- [x] `lib/api-client.ts` with `authFetch()` + JWT Bearer + 401 retry
+- [x] 17 client components updated to use `authFetch()`
+- [x] Removed orphaned lib files (api-auth, rate-limit, extract-text, etc.)
+- [x] Only OG image generation remains in Next.js
+- [x] New env var: `NEXT_PUBLIC_API_URL`
+
 #### oEmbed + Rich Embed Widgets
 - [x] `GET /api/oembed` endpoint for standardized content embedding
 - [x] JSON and XML response formats for platform compatibility

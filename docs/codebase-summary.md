@@ -20,32 +20,21 @@ DropItX is a Next.js 16 (App Router) application for uploading HTML/Markdown fil
 | Analytics | Vercel Analytics + custom `analytics_events` table |
 | CLI | `packages/cli/` — TypeScript ESM, binary `dropitx` |
 
-## Recent Major Features (v2.2.0 - 2026-04-29)
+## Recent Major Changes
 
-### Enhanced Team Invite System
-- **Team Invite Form**: Enhanced form with role selection and email validation
-- **Enhanced Invite Dialog**: Advanced dialog with invite link generation and team RPC client integration
-- **Bulk Invite Dialog**: Support for inviting multiple team members at once with progress tracking
-- **Invite Accept Flow**: Complete flow from invite acceptance to team membership
-- **Team RPC Client**: Type-safe server communication for team operations using `lib/team-rpc.ts`
-- **Token Security Utilities**: Secure invite token management with `lib/token-security.ts`
+### v2.3.0 (2026-05-02) - FastAPI Migration
+- **All Next.js API routes removed**: 24 route handlers (~2,400 lines) deleted
+- **Frontend is now pure client**: Calls FastAPI backend via `authFetch()` with JWT Bearer auth
+- **`lib/api-client.ts`**: Singleton Supabase client + JWT injection + 401 retry
+- **Only remaining route**: `app/api/og-image/route.ts`
+- **Removed lib files**: `api-auth.ts`, `rate-limit.ts`, `validate-editor-content.ts`, `extract-text.ts`, `extract-title-from-markdown.ts`
+- **New env var**: `NEXT_PUBLIC_API_URL=https://dropitx-api.onrender.com`
 
-### New UI Components
-- **Dialog**: Modal dialog component for user interactions
-- **Select**: Dropdown select component for single/multiple selections
-- **Textarea**: Multi-line input component with consistent styling
-- **Alert**: Contextual alert component with different severity levels
-- **Skeleton**: Loading state component matching final layout
-- **CopyButton**: Copy-to-clipboard component for share links
-
-### New Hooks
-- **use-email-validation**: Real-time email validation hook
-- **use-team**: Team workspace state management hook
-- **use-toast**: Toast notification hook
-
-### New API Routes
-- `POST /api/dashboard/teams/[slug]/invites/bulk` - Bulk invite multiple users
-- `POST /api/dashboard/teams/[slug]/invites/[id]/resend` - Resend invite to user
+### v2.2.0-v2.2.1 (2026-04-29) - Team Invite Enhancement
+- Enhanced invite form, bulk invite, accept/decline flow
+- Invite notification bell with auto-refresh
+- Team RPC client + token security utilities
+- Auto-signup accept flow for unauthenticated users
 
 ## File Structure Overview
 
@@ -53,87 +42,62 @@ DropItX is a Next.js 16 (App Router) application for uploading HTML/Markdown fil
 app/
 ├── layout.tsx, page.tsx, globals.css, not-found.tsx, error.tsx
 ├── editor/page.tsx                     # Markdown editor (SSR-disabled)
-├── s/[slug]/page.tsx, loading.tsx      # Public share viewer
-├── s/[slug]/embed/page.tsx            # Embed-friendly viewer
-├── search/page.tsx, loading.tsx        # Full-text search
+├── s/[slug]/page.tsx                   # Public share viewer
+├── embed/[slug]/page.tsx              # oEmbed viewer
+├── search/page.tsx                     # Full-text search
+├── invite/accept/page.tsx             # Team invite acceptance
 ├── dashboard/
 │   ├── layout.tsx, page.tsx            # Share list + stats + API keys
 │   ├── profile/page.tsx
 │   ├── favorites/page.tsx
-│   ├── analytics/page.tsx              # Analytics dashboard with charts
-│   ├── teams/page.tsx                  # Team workspace list
-│   ├── teams/new/page.tsx             # Create new workspace
-│   ├── teams/[slug]/page.tsx           # Workspace details
-│   ├── teams/[slug]/members/page.tsx  # Member management
-│   ├── teams/[slug]/settings/page.tsx # Workspace settings
-│   └── teams/[slug]/shares/page.tsx   # Workspace content
+│   ├── analytics/page.tsx, analytics/[slug]/page.tsx
+│   ├── teams/page.tsx, teams/new/page.tsx
+│   └── teams/[slug]/(page,members,settings).tsx
 ├── auth/
-│   ├── login/page.tsx                 # Email/password + OAuth sign-in
+│   ├── login/page.tsx                 # Email/password + OAuth
 │   ├── callback/route.ts              # PKCE code exchange
 │   ├── confirm/route.ts               # Email confirmation
-│   ├── reset-password/page.tsx         # Password reset page
-│   └── update-password/page.tsx       # Update password after reset
+│   ├── reset-password/page.tsx
+│   └── update-password/page.tsx
 └── api/
-    ├── upload/route.ts                # POST multipart ≤50 MB
-    ├── publish/route.ts               # POST editor publish
-    ├── images/upload/route.ts         # POST inline images ≤5 MB
-    ├── search/route.ts                # GET full-text search
-    ├── shares/[slug]/route.ts         # GET/PATCH/DELETE owner CRUD
-    ├── shares/[slug]/set-password/route.ts  # Share password management
-    ├── shares/[slug]/unlock/route.ts     # Password unlock with cookie
-    ├── analytics/track/route.ts       # Event tracking
-    ├── oembed/route.ts                # oEmbed JSON endpoint
-    ├── oembed.xml/route.ts             # oEmbed XML endpoint
-    └── dashboard/
-        └── teams/
-            ├── [slug]/invites/route.ts         # GET/POST invites
-            ├── [slug]/invites/bulk/route.ts   # POST bulk invite
-            ├── [slug]/invites/[id]/resend/route.ts  # POST resend invite
-            ├── [slug]/events/route.ts         # GET team events
-            ├── [slug]/shares/route.ts         # GET workspace shares
-            └── [slug]/members/route.ts        # GET/POST members
-    └── v1/
-        ├── keys/route.ts              # GET/POST api keys
-        ├── keys/[id]/route.ts         # DELETE (revoke) api key
-        └── documents/
-            ├── route.ts               # POST create, GET list
-            └── [slug]/route.ts        # GET/PATCH/DELETE
+    └── og-image/route.ts              # Only remaining Next.js API route
 
 components/
-├── ui/{button,card,input,textarea,dialog,select,badge,alert,sonner,skeleton}.tsx
+├── ui/{button,card,input,textarea,dialog,select,badge,alert,sonner,skeleton,popover}.tsx
 ├── editor-shell.tsx, editor-pane.tsx, editor-preview.tsx
 ├── editor-toolbar.tsx, editor-publish-bar.tsx
-├── upload-dropzone.tsx, share-link.tsx
+├── upload-dropzone.tsx, share-link.tsx, copy-button.tsx
 ├── search-bar.tsx, search-results.tsx
 ├── html-viewer.tsx, markdown-viewer.tsx, markdown-viewer-wrapper.tsx
-├── dashboard-share-card.tsx, bookmark-toggle.tsx
+├── dashboard-share-card.tsx, dashboard-share-list.tsx, bookmark-toggle.tsx
 ├── api-key-manager.tsx, profile-form.tsx
-├── auth-user-menu.tsx, home-page.tsx, theme-provider.tsx
+├── auth-user-menu.tsx, home-page.tsx, theme-provider.tsx, vercel-analytics.tsx
 ├── header-bar.tsx, header-nav.tsx, header-mobile-drawer.tsx
+├── password-gate.tsx, share-password-form.tsx
+├── share-viewed-tracker.tsx, share-analytics-tracker.tsx
+├── embed-viewed-tracker.tsx, embed-snippet.tsx
 ├── analytics/{stats-cards,view-chart,geo-chart,referrer-chart,top-performers,empty-state}.tsx
-├── teams/{create-team-form,team-member-row,team-nav,team-share-card,invite-member-dialog,team-invite-form,enhanced-invite-dialog,bulk-invite-dialog,invite-accept-form,invite-status-card}.tsx
-├── shares/{share-link,share-password-form,password-gate,share-viewed-tracker,share-analytics-tracker,embed-viewed-tracker,embed-snippet}.tsx
-├── copy-button.tsx, bulk-invite-dialog.tsx, enhanced-invite-dialog.tsx
+├── create-team-form.tsx, team-member-row.tsx, team-nav.tsx, team-share-card.tsx
+├── invite-member-dialog.tsx, enhanced-invite-dialog.tsx, bulk-invite-dialog.tsx
+├── invite-notification-bell.tsx, invite-status-card.tsx, invite-accept-form.tsx
+├── members-page-client.tsx, team-activity-feed.tsx
+└── team/team-invite-form.tsx
 
 lib/
-├── utils.ts, nanoid.ts, extract-text.ts, rate-limit.ts
-├── api-auth.ts                        # API key hash + lookup
-├── shiki-highlighter.ts
-├── nav-links.ts                       # Navigation links configuration
-├── use-auth-user.ts                   # Authentication state hook
-├── use-email-validation.ts             # Email validation hook
-├── use-team.ts                         # Team workspace hook
-├── use-toast.ts                        # Toast notification hook
-├── share-access-cookie.ts             # Password access cookie management
-├── team-utils.ts                      # Workspace utilities
-├── team-rpc.ts                        # Team RPC client for type-safe server calls
-├── token-security.ts                  # Token security utilities for invite management
-├── invite-utils.ts                   # Invitation system helpers
-├── analytics-track.ts                 # Event tracking helpers
-├── oembed-utils.ts                   # oEmbed metadata generation
-├── referrer-parser.ts                 # Referrer URL parsing
+├── api-client.ts                      # authFetch() with JWT Bearer + 401 retry
+├── api-key.ts                         # API key utilities
+├── api-utils.ts                       # API helper functions
+├── utils.ts, nanoid.ts
 ├── password.ts                        # Password hashing helpers
-└── editor-extensions/                 # CodeMirror slash commands, image drop
+├── share-access-cookie.ts             # Password access cookie management
+├── team-utils.ts, team-rpc.ts, team-event-utils.ts
+├── token-security.ts, invite-utils.ts
+├── analytics-track.ts, analytics.ts
+├── oembed-utils.ts, referrer-parser.ts
+├── shiki-highlighter.ts, slugify-handle.ts
+├── nav-links.ts, validation.ts, validate-custom-slug.ts
+├── use-auth-user.ts, use-editor-auto-save.ts, use-scroll-sync.ts
+└── editor-extensions.ts, editor-extensions/(image-drop, image-preview, slash-commands)
 
 utils/supabase/
 ├── client.ts, server.ts, middleware.ts
@@ -164,14 +128,22 @@ supabase/
     ├── 20260428000004_fix_rls_policies_use_anon_role.sql
     ├── 20260428000005_fix_stable_to_volatile_rls_functions.sql
     ├── 20260428162629_fix_rls_policies_to_authenticated.sql
-    └── 20260429_team_lifecycle_redesign.sql
+    ├── 20260429_team_lifecycle_redesign.sql
+    ├── 20260429180000_decline_team_invite.sql
+    └── 20260430121500_fix_ambiguous_team_id_in_invite_policies.sql
 ```
 
 ## Key Architectural Patterns
 
+### Client-Server Architecture (v2.3.0)
+- **Next.js (Vercel)**: Pure frontend — no API routes (except OG image)
+- **FastAPI (Render)**: All API logic — uploads, shares, auth, teams, analytics
+- **Communication**: `authFetch()` from `lib/api-client.ts` injects JWT Bearer token
+- **Auth**: Supabase JWT sent as Bearer token to FastAPI; FastAPI validates via JWKS
+
 ### Dual Authentication Model
-- **Cookie Session**: Browser users with OAuth/email auth via Supabase
-- **API Key**: Programmatic access with SHA-256 hash lookup via `lib/api-auth.ts`
+- **JWT Session**: Browser users with OAuth/email auth via Supabase → JWT sent to FastAPI
+- **API Key**: Programmatic access with SHA-256 hash lookup (FastAPI-side)
 
 ### Team Invite System Architecture
 - **Single Invite**: Role-based invite with email validation and server-side verification
@@ -218,6 +190,7 @@ supabase/
 | `UPSTASH_REDIS_REST_URL` | Upstash Redis REST endpoint |
 | `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis auth token |
 | `SHARE_ACCESS_SECRET` | 32+ char secret for HMAC cookie signing (password protection) |
+| `NEXT_PUBLIC_API_URL` | FastAPI backend URL (e.g. `https://dropitx-api.onrender.com`) |
 
 ## Development Commands
 
@@ -233,6 +206,17 @@ dropitx publish README.md -t "My Doc"
 ```
 
 ## Recent Development Status
+
+### v2.3.0 (2026-05-02) - FastAPI Migration
+- ✅ All 24 Next.js API routes removed, frontend is pure client
+- ✅ `lib/api-client.ts` with `authFetch()` + JWT Bearer + 401 retry
+- ✅ 17 client components migrated to use `authFetch()`
+- ✅ Only OG image route remains in Next.js
+
+### v2.2.1 (2026-04-29) - Invite Accept UI
+- ✅ Invite notification bell with auto-refresh
+- ✅ Decline team invite RPC + API route
+- ✅ Auto-signup accept flow for unauthenticated users
 
 ### v2.2.0 (2026-04-29) - Team Invite Enhancement
 - ✅ Enhanced team invite system with role selection and email validation
@@ -275,27 +259,29 @@ dropitx publish README.md -t "My Doc"
         ▼             ▼           ▼               ▼
 ┌──────────────────────────────────────────────────────────────┐
 │                     Next.js (Vercel)                         │
-│  POST /api/upload     GET /s/[slug]    GET /api/search       │
-│  POST /api/publish    GET/PATCH/DELETE /api/shares/[slug]    │
-│  POST /api/images/upload                                     │
-│  POST /api/shares/[slug]/unlock                              │
-│  POST /api/shares/[slug]/set-password                        │
-│  POST /api/analytics/track                                   │
-│  GET /api/oembed                                             │
-│  GET|POST /api/v1/keys    DELETE /api/v1/keys/[id]           │
-│  POST /api/v1/documents   GET /api/v1/documents              │
-│  GET /api/v1/documents/[slug]   PATCH|DELETE /api/v1/..      │
-│  CRUD /api/dashboard/teams, /api/dashboard/teams/[slug]/*    │
-│  Team Invite: /api/dashboard/teams/[slug]/invites/*         │
+│  Pure frontend — no API routes (except /api/og-image)        │
+│  Client components use authFetch() / fetch(getApiUrl())      │
+│  lib/api-client.ts: singleton Supabase client + 401 retry   │
+└──────────────────────────┬───────────────────────────────────┘
+                           │  JWT Bearer token
+                           ▼
+┌──────────────────────────────────────────────────────────────┐
+│                  FastAPI Backend (Render)                     │
+│  dropitx-api.onrender.com                                    │
 │                                                              │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │  lib/api-auth.ts          utils/supabase/server.ts  │    │
-│  │  lib/password.ts          lib/share-access-cookie.ts│    │
-│  │  lib/rate-limit.ts        lib/team-rpc.ts           │    │
-│  │  lib/token-security.ts    createClient()            │    │
-│  │  createAdminClient()                                │    │
-│  └────────┬──────────────────────┬──────────────────────┘   │
-└───────────┼──────────────────────┼──────────────────────────┘
+│  POST /api/upload     GET /api/search    POST /api/publish   │
+│  POST /api/images/upload                                   │
+│  GET/PATCH/DELETE /api/shares/{slug}                        │
+│  POST /api/shares/{slug}/unlock                              │
+│  POST /api/shares/{slug}/set-password                        │
+│  POST /api/analytics/track   GET /api/oembed                 │
+│  GET|POST /api/v1/keys    DELETE /api/v1/keys/{key_id}      │
+│  POST /api/v1/documents  GET /api/v1/documents              │
+│  CRUD /api/dashboard/teams, /api/dashboard/teams/{slug}/*   │
+│  POST /api/invite/accept   POST /api/invite/decline          │
+│                                                              │
+│  JWT validation via JWKS  ·  Rate limiting via Upstash       │
+└───────────┬──────────────────────────────────────────────────┘
             │                      │
             ▼                      ▼
 ┌───────────────────┐  ┌──────────────────────┐

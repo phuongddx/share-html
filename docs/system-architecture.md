@@ -2,7 +2,7 @@
 
 ## Overview
 
-DropItX is a Next.js 16 application (App Router) deployed on Vercel as a pure frontend. All API logic runs on a FastAPI backend (`dropitx-api.onrender.com`) with Supabase (PostgreSQL + Storage) and Upstash Redis (rate limiting). Features include team workspaces, analytics dashboard, password-protected shares, rich embedding via oEmbed, and programmatic access via REST API. Supports two auth models: JWT Bearer token (browser) and API key (programmatic).
+DropItX is a Next.js 16 application (App Router) deployed on Vercel as a pure frontend. All API logic runs on a FastAPI backend (`dropitx-api.onrender.com`) with Supabase (PostgreSQL + Storage) and Upstash Redis (rate limiting). Features include team workspaces, analytics dashboard, password-protected shares, rich embedding via oEmbed, and programmatic access via REST API. Supports two auth models: JWT Bearer token (browser) and API key (programmatic). Version 2.3.0 migrated all API routes from Next.js to FastAPI.
 
 ## Architecture Diagram
 
@@ -332,6 +332,9 @@ DELETE /api/v1/keys/[id]  → set revoked_at = NOW()
 | `20260428000003_fix_teams_insert_policy.sql` | Team member insert policy fixes |
 | `20260428000004_fix_rls_policies_use_anon_role.sql` | RLS policy anon role updates |
 | `20260428162629_fix_rls_policies_to_authenticated.sql` | RLS policies to authenticated role |
+| `20260429_team_lifecycle_redesign.sql` | Team lifecycle redesign with event sourcing |
+| `20260429180000_decline_team_invite.sql` | Decline invite RPC with email validation |
+| `20260430121500_fix_ambiguous_team_id_in_invite_policies.sql` | Fix ambiguous team_id in invite policies |
 
 ## Security Layers
 

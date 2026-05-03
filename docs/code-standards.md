@@ -68,38 +68,19 @@ docs/                 # Documentation
 
 ## API Routes
 
-- `NextRequest` / `NextResponse` from `next/server`
-- Consistent JSON error responses: `{ error: string }`
-- Try/catch with proper HTTP status codes
-- Input validation at route handler level
-- Rate limiting via `lib/rate-limit.ts` on write endpoints (browser-auth routes)
-- Multipart handling: use `request.formData()` for file uploads
+**Note**: All API logic runs on a FastAPI backend (`dropitx-api.onrender.com`). The Next.js app is a pure frontend with only one remaining API route (`/api/og-image`).
 
-### Versioned API Convention
-- Routes under `/api/v1/` use API key auth only (no cookie fallback)
-- Auth via `lib/api-auth.ts`: SHA-256 hash of Bearer token → lookup `api_keys`
-- Team workspace routes: `/api/dashboard/teams/` with RLS policies for access control
-- Analytics tracking: `/api/analytics/track` for event-based user engagement metrics
+### Client-Side API Calls
+- Use `authFetch()` from `lib/api-client.ts` for all authenticated requests
+- `authFetch()` injects JWT Bearer token from Supabase session
+- 401 responses trigger automatic session refresh + retry
+- `getApiUrl()` returns `NEXT_PUBLIC_API_URL` for constructing API endpoints
 
-### API Key Auth Pattern
-```typescript
-// lib/api-auth.ts pattern
-const hash = crypto.createHash('sha256').update(token).digest('hex');
-const { data } = await adminClient
-  .from('api_keys')
-  .select('id, user_id')
-  .eq('key_hash', hash)
-  .is('revoked_at', null)
-  .single();
-// async: update last_used_at without awaiting
-```
-
-### Multipart Handling Pattern
-```typescript
-const formData = await request.formData();
-const file = formData.get('file') as File;
-const buffer = Buffer.from(await file.arrayBuffer());
-```
+### FastAPI Backend API Conventions
+- All routes under `/api/v1/` use API key auth (Bearer token)
+- Browser routes use JWT Bearer auth from Supabase session
+- Team workspace routes: `/api/dashboard/teams/` with RLS policies
+- Analytics tracking: `/api/analytics/track` for event metrics
 
 ### Team Workspace API Pattern
 ```typescript
@@ -162,7 +143,7 @@ Never use the admin client in client components — server-only.
 
 ## Security
 
-- **File upload**: validate extension, MIME type, size (≤ 50 MB) at API layer
+- **File upload**: validate extension, MIME type, size (≤ 50 MB) at FastAPI layer
 - **Image upload**: validate MIME type (png/jpg/gif/webp), size (≤ 5 MB), require session auth
 - **HtmlViewer**: sandboxed iframe (`sandbox="allow-scripts"`) + CSP meta tag injection
 - **Delete token**: random 32-char string, required for file-upload share deletion
@@ -172,10 +153,9 @@ Never use the admin client in client components — server-only.
 - **`is_private`**: enforced at RLS level and in `search_shares` RPC — not just application logic
 - **Password protection**: bcryptjs hash in `shares.password_hash`; HMAC-SHA256 signed HttpOnly access cookie
 - **Team workspaces**: RLS policies with owner/member role-based access control on workspace tables
+- **JWT auth**: Supabase JWT sent as Bearer token to FastAPI; validated via JWKS
 - **Team RPC client**: Type-safe server communication pattern using lib/team-rpc.ts
 - **Token security**: Secure invite token management with lib/token-security.ts
-- **Email validation**: Real-time email validation with use-email-validation hook
-- **Analytics tracking**: Event-based system with separate `analytics_events` table and privacy safeguards
 
 ## Lint & Build
 

@@ -120,7 +120,8 @@ DropItX is a modern web platform that enables users to upload HTML and Markdown 
 ## Technical Constraints
 
 ### Technology Stack
-- **Frontend**: Next.js 16 (App Router), React 19, TypeScript strict
+- **Frontend**: Next.js 16 (App Router), React 19, TypeScript strict — pure frontend on Vercel
+- **Backend**: FastAPI (Python) on Render — all API logic
 - **Editor**: CodeMirror 6, loaded via `next/dynamic` (ssr: false)
 - **Database**: Supabase (PostgreSQL + Storage)
 - **Styling**: Tailwind CSS 4, shadcn/ui, OKLCH color tokens

@@ -17,6 +17,7 @@
 | `UPSTASH_REDIS_REST_URL` | Upstash Redis REST endpoint |
 | `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis auth token |
 | `SHARE_ACCESS_SECRET` | 32+ char secret for HMAC cookie signing (password protection) |
+| `NEXT_PUBLIC_API_URL` | FastAPI backend URL (e.g. `https://dropitx-api.onrender.com`) |
 
 No additional env vars are needed for API key hashing — it uses Node.js built-in `crypto`.
 
@@ -70,6 +71,9 @@ supabase db push
 | `20260428000001-05` | RLS fixes for team workspaces and infinite recursion bugs |
 | `20260428162629` | RLS policies changed to authenticated role |
 | `20260429000001_add_team_invite_enhancements.sql` | Enhanced team invite system with token security and bulk operations |
+| `20260429_team_lifecycle_redesign.sql` | Team lifecycle redesign with event sourcing |
+| `20260429180000_decline_team_invite.sql` | Decline invite RPC with email validation |
+| `20260430121500_fix_ambiguous_team_id_in_invite_policies.sql` | Fix ambiguous team_id in invite policies |
 
 ### 2a. Recovery for Already-Provisioned Projects
 
@@ -171,7 +175,7 @@ No custom `vercel.json` needed. Next.js 16 is auto-detected.
 
 ## Production Checklist
 
-- [ ] All 6 env vars set in Vercel (including SHARE_ACCESS_SECRET)
+- [ ] All 7 env vars set in Vercel (including SHARE_ACCESS_SECRET and NEXT_PUBLIC_API_URL)
 - [ ] Supabase schema + all 14 migrations applied (including teams and analytics)
 - [ ] Storage bucket `html-files` created (public, 50 MB, correct MIME types)
 - [ ] Upstash Redis connected

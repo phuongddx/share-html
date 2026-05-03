@@ -1,6 +1,6 @@
 # DropItX
 
-Drop HTML and Markdown files, write in the built-in editor, and get short shareable links. Programmatic access via REST API and CLI. Built with Next.js 16, Supabase, and Tailwind CSS.
+Drop HTML and Markdown files, write in the built-in editor, and get short shareable links. Programmatic access via REST API and CLI. Built with Next.js 16 (frontend), FastAPI (backend), Supabase, and Tailwind CSS.
 
 ## Features
 
@@ -19,7 +19,8 @@ Drop HTML and Markdown files, write in the built-in editor, and get short sharea
 
 ## Tech Stack
 
-- **Next.js 16** (App Router, React 19)
+- **Next.js 16** (App Router, React 19) — pure frontend on Vercel
+- **FastAPI** (Python) — backend API on Render
 - **TypeScript** (strict mode)
 - **Supabase** (PostgreSQL, Storage, Auth — Google/GitHub OAuth)
 - **CodeMirror 6** (Markdown editor, SSR-disabled)
@@ -57,6 +58,7 @@ npm run dev   # http://localhost:3000
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server-only) |
 | `UPSTASH_REDIS_REST_URL` | Upstash Redis REST endpoint |
 | `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis auth token |
+| `NEXT_PUBLIC_API_URL` | FastAPI backend URL (e.g. `https://dropitx-api.onrender.com`) |
 
 ### Database Setup
 
@@ -96,7 +98,7 @@ dropitx delete abc123
 
 ## API Reference
 
-All v1 endpoints require `Authorization: Bearer <api-key>`. Generate keys at `/dashboard`.
+All API endpoints are served by the FastAPI backend. v1 endpoints require `Authorization: Bearer <api-key>`. Generate keys at `/dashboard`.
 
 ### Documents
 
@@ -129,11 +131,11 @@ All v1 endpoints require `Authorization: Bearer <api-key>`. Generate keys at `/d
 ## Project Structure
 
 ```
-app/                  # Next.js App Router pages and API routes
+app/                  # Next.js App Router pages (pure frontend)
 app/editor/           # Markdown editor (SSR-disabled)
-app/api/v1/           # REST API (API key auth)
+app/api/              # Only OG image route remains
 components/           # React components (ui/ for primitives)
-lib/                  # Utilities (nanoid, extract-text, rate-limit, api-auth)
+lib/                  # Utilities (api-client, team-rpc, analytics, etc.)
 lib/editor-extensions/# CodeMirror slash commands, image drop
 utils/supabase/       # Supabase client factories (browser, server, admin)
 types/                # TypeScript interfaces
