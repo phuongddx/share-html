@@ -33,7 +33,7 @@ export async function middleware(request: NextRequest) {
   if (!request.nextUrl.pathname.startsWith("/s/")) {
     supabaseResponse.headers.set(
       "Content-Security-Policy",
-      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://lh3.googleusercontent.com https://avatars.githubusercontent.com; font-src 'self'; connect-src 'self' https://*.supabase.co https://*.upstash.io; form-action 'self' https://accounts.google.com https://github.com;",
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://lh3.googleusercontent.com https://avatars.githubusercontent.com; font-src 'self'; connect-src 'self' http://localhost:8000 https://dropitx-api.onrender.com https://*.supabase.co https://*.upstash.io; form-action 'self' https://accounts.google.com https://github.com;",
     );
   }
 
